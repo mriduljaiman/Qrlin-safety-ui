@@ -1,0 +1,11 @@
+.canvasWrapper {
+  width: 100%;
+  height: 480px;
+  cursor: grab;
+}
+
+@media (max-width: 768px) {
+  .canvasWrapper {
+    height: 320px;
+  }
+}

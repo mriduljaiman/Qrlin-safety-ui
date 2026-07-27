@@ -1,9 +1,14 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { WebSocketProvider } from './context/WebSocketContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Home from './pages/Home';
+import Loading from './components/Common/Loading';
 import Dashboard from './pages/Dashboard';
+
+// Home pulls in Three.js for the 3D hero scene - lazy-loaded so that weight
+// only hits visitors landing on "/", not the rest of the app (login, dashboard, etc).
+const Home = lazy(() => import('./pages/Home'));
 import AddTag from './pages/AddTag';
 import TagDetail from './pages/TagDetail';
 import PublicScan from './pages/PublicScan';
@@ -38,7 +43,11 @@ function App() {
         <ThemeProvider>
           <WebSocketProvider>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={
+                <Suspense fallback={<Loading fullScreen />}>
+                  <Home />
+                </Suspense>
+              } />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify-email" element={<VerifyEmail />} />

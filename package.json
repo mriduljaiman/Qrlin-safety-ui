@@ -9,6 +9,8 @@
         "lint": "eslint ."
     },
     "dependencies": {
+        "@react-three/drei": "^9.122.0",
+        "@react-three/fiber": "^8.18.0",
         "@stomp/stompjs": "^7.2.1",
         "axios": "^1.6.2",
         "framer-motion": "^10.16.16",
@@ -17,7 +19,8 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.21.0",
-        "sockjs-client": "^1.6.1"
+        "sockjs-client": "^1.6.1",
+        "three": "^0.160.1"
     },
     "devDependencies": {
         "@types/qrcode": "^1.5.6",
@@ -25,6 +28,7 @@
         "@types/react-dom": "^18.2.17",
         "@types/sockjs-client": "^1.5.4",
         "@types/stompjs": "^2.3.9",
+        "@types/three": "^0.185.1",
         "@vitejs/plugin-react": "^4.2.1",
         "typescript": "^5.3.3",
         "vite": "^5.0.8",
