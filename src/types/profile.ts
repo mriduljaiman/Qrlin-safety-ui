@@ -30,5 +30,7 @@ export interface Preferences {
   theme: string;
   notificationSound: string;
   notificationFontSize: string;
+  notificationFontFamily: string;
   notificationColor: string;
+  notificationMuted: boolean;
 }

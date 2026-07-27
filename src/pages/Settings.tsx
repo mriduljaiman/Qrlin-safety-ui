@@ -6,20 +6,39 @@ import { Tag } from '../types/tag';
 import { Preferences } from '../types/profile';
 import { useTheme } from '../hooks/useTheme';
 import { THEMES } from '../context/ThemeContext';
+import { SOUND_OPTIONS, playNotificationSound } from '../utils/notificationSounds';
 import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import styles from './Tags.module.css';
 
-const SOUND_OPTIONS = ['chime', 'bell', 'ping', 'none'];
-const FONT_SIZE_OPTIONS = ['small', 'medium', 'large'];
+const FONT_SIZE_OPTIONS = ['12', '14', '16', '18', '20', '24', '28'];
+const FONT_FAMILY_OPTIONS = [
+  { value: 'system-ui', label: 'System Default' },
+  { value: 'Arial, sans-serif', label: 'Arial' },
+  { value: 'Georgia, serif', label: 'Georgia' },
+  { value: '"Times New Roman", serif', label: 'Times New Roman' },
+  { value: '"Courier New", monospace', label: 'Courier New' },
+  { value: 'Verdana, sans-serif', label: 'Verdana' },
+  { value: '"Trebuchet MS", sans-serif', label: 'Trebuchet MS' },
+  { value: '"Comic Sans MS", cursive', label: 'Comic Sans MS' },
+];
 const COLOR_OPTIONS = ['#667eea', '#0ea5e9', '#f97316', '#16a34a', '#f43f5e', '#a855f7', '#1a202c'];
 
 type Tab = 'tags' | 'notifications' | 'themes';
 
+const defaultPrefs: Preferences = {
+  theme: 'default',
+  notificationSound: 'chime',
+  notificationFontSize: '16',
+  notificationFontFamily: 'system-ui',
+  notificationColor: '#667eea',
+  notificationMuted: false,
+};
+
 const Settings: React.FC = () => {
   const [tab, setTab] = useState<Tab>('tags');
   const [tags, setTags] = useState<Tag[]>([]);
-  const [prefs, setPrefs] = useState<Preferences>({ theme: 'default', notificationSound: 'chime', notificationFontSize: 'medium', notificationColor: '#667eea' });
+  const [prefs, setPrefs] = useState<Preferences>(defaultPrefs);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -29,7 +48,7 @@ const Settings: React.FC = () => {
       try {
         const [tagList, preferences] = await Promise.all([tagsAPI.listAll(), profileAPI.getPreferences()]);
         setTags(tagList);
-        setPrefs(preferences);
+        setPrefs({ ...defaultPrefs, ...preferences });
       } catch (err) {
         console.error('Failed to load settings', err);
       } finally {
@@ -64,6 +83,21 @@ const Settings: React.FC = () => {
   const handleApplyTheme = (themeId: string) => {
     setTheme(themeId);
     savePreferences({ theme: themeId });
+  };
+
+  const handleSoundChange = (sound: string) => {
+    savePreferences({ notificationSound: sound });
+    if (!prefs.notificationMuted) {
+      playNotificationSound(sound);
+    }
+  };
+
+  const handleToggleMute = () => {
+    const nowMuted = !prefs.notificationMuted;
+    savePreferences({ notificationMuted: nowMuted });
+    if (!nowMuted) {
+      playNotificationSound(prefs.notificationSound);
+    }
   };
 
   if (loading) {
@@ -119,26 +153,61 @@ const Settings: React.FC = () => {
 
             <div className={styles.formGroup}>
               <label>Notification sound</label>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <select
+                  value={prefs.notificationSound}
+                  onChange={(e) => handleSoundChange(e.target.value)}
+                  style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8, flex: 1, background: 'var(--surface)', color: 'var(--gray-800)' }}
+                >
+                  {SOUND_OPTIONS.map((s) => (
+                    <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => playNotificationSound(prefs.notificationSound)}
+                  disabled={prefs.notificationSound === 'none'}
+                  title="Preview sound"
+                  style={{ padding: '10px 14px', border: '2px solid var(--gray-200)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer' }}
+                >
+                  ▶️
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleMute}
+                  title={prefs.notificationMuted ? 'Unmute notifications' : 'Mute notifications'}
+                  style={{ padding: '10px 14px', border: '2px solid var(--gray-200)', borderRadius: 8, background: prefs.notificationMuted ? '#fed7d7' : 'var(--surface)', cursor: 'pointer' }}
+                >
+                  {prefs.notificationMuted ? '🔇' : '🔊'}
+                </button>
+              </div>
+              <span className={styles.hint}>
+                {prefs.notificationMuted ? 'Muted — notification popups will be silent.' : 'Unmuted (default) — changing the sound plays a preview.'}
+              </span>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Font size (px)</label>
               <select
-                value={prefs.notificationSound}
-                onChange={(e) => savePreferences({ notificationSound: e.target.value })}
-                style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8 }}
+                value={prefs.notificationFontSize}
+                onChange={(e) => savePreferences({ notificationFontSize: e.target.value })}
+                style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8, background: 'var(--surface)', color: 'var(--gray-800)' }}
               >
-                {SOUND_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                {FONT_SIZE_OPTIONS.map((s) => (
+                  <option key={s} value={s}>{s}px</option>
                 ))}
               </select>
             </div>
 
             <div className={styles.formGroup}>
-              <label>Font size</label>
+              <label>Font style</label>
               <select
-                value={prefs.notificationFontSize}
-                onChange={(e) => savePreferences({ notificationFontSize: e.target.value })}
-                style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8 }}
+                value={prefs.notificationFontFamily}
+                onChange={(e) => savePreferences({ notificationFontFamily: e.target.value })}
+                style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8, background: 'var(--surface)', color: 'var(--gray-800)' }}
               >
-                {FONT_SIZE_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                {FONT_FAMILY_OPTIONS.map((f) => (
+                  <option key={f.value} value={f.value}>{f.label}</option>
                 ))}
               </select>
             </div>
@@ -164,7 +233,8 @@ const Settings: React.FC = () => {
                 borderRadius: 8,
                 background: prefs.notificationColor,
                 color: 'white',
-                fontSize: prefs.notificationFontSize === 'small' ? 13 : prefs.notificationFontSize === 'large' ? 18 : 15,
+                fontSize: `${prefs.notificationFontSize}px`,
+                fontFamily: prefs.notificationFontFamily,
               }}
             >
               Preview: "Your tag was just scanned" {saving && '(saving...)'}
