@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { profileAPI } from '../api/profile';
+import { uploadsAPI } from '../api/uploads';
+import { compressImageToTarget } from '../utils/imageCompression';
 import { UserProfile } from '../types/profile';
 import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
@@ -28,6 +30,8 @@ const Profile: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -74,6 +78,33 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setError('');
+    try {
+      const compressed = await compressImageToTarget(file, 20 * 1024, 400);
+      const { url } = await uploadsAPI.uploadPhoto(compressed);
+      setProfile((prev) => ({ ...prev, photoUrl: url }));
+      const updated = await profileAPI.updateMe({ photoUrl: url });
+      setProfile((prev) => ({ ...prev, ...updated }));
+      setSuccess('Photo updated');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Could not upload photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -94,18 +125,35 @@ const Profile: React.FC = () => {
 
         <form onSubmit={handleSave}>
           <div className={styles.qrWrapper} style={{ marginBottom: 24 }}>
-            {profile.photoUrl ? (
-              <img src={profile.photoUrl} alt="Profile" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} />
-            ) : (
-              <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#edf2f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: '#a0aec0' }}>
-                {profile.fullName?.[0]?.toUpperCase() || '?'}
+            <div
+              onClick={() => !uploadingPhoto && fileInputRef.current?.click()}
+              style={{ position: 'relative', cursor: uploadingPhoto ? 'default' : 'pointer', width: 100, height: 100 }}
+              title="Click to change photo"
+            >
+              {profile.photoUrl ? (
+                <img src={profile.photoUrl} alt="Profile" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'var(--gray-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, color: 'var(--gray-400)' }}>
+                  {profile.fullName?.[0]?.toUpperCase() || '?'}
+                </div>
+              )}
+              {uploadingPhoto && (
+                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Loading size="sm" />
+                </div>
+              )}
+              <div style={{ position: 'absolute', bottom: 0, right: 0, width: 30, height: 30, borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, border: '2px solid var(--surface)' }}>
+                📷
               </div>
-            )}
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Profile photo URL</label>
-            <input value={profile.photoUrl || ''} onChange={(e) => handleChange('photoUrl', e.target.value)} placeholder="https://..." />
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoSelect}
+              style={{ display: 'none' }}
+            />
+            <span className={styles.hint}>Click the photo to upload — automatically compressed to ~20KB</span>
           </div>
 
           <div className={styles.formGroup}>
@@ -115,7 +163,7 @@ const Profile: React.FC = () => {
 
           <div className={styles.formGroup}>
             <label>Email</label>
-            <input value={profile.email} disabled style={{ background: '#f7fafc', color: '#a0aec0' }} />
+            <input value={profile.email} disabled style={{ background: 'var(--gray-50)', color: 'var(--gray-400)' }} />
           </div>
 
           <div className={styles.formGroup}>
@@ -143,7 +191,7 @@ const Profile: React.FC = () => {
             <select
               value={profile.country || 'India'}
               onChange={(e) => handleChange('country', e.target.value)}
-              style={{ padding: '12px 16px', border: '2px solid #e2e8f0', borderRadius: 8, fontSize: 14 }}
+              style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8, fontSize: 14, background: 'var(--surface)', color: 'var(--gray-800)' }}
             >
               {COUNTRIES.map((c) => (
                 <option key={c} value={c}>{c}</option>
