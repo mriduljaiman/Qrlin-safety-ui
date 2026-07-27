@@ -153,11 +153,11 @@ const TagDetail: React.FC = () => {
 
             <div className={styles.toggleRow} style={{ marginTop: 24 }}>
               <div>
-                <strong>Lost mode</strong>
-                <div style={{ fontSize: 13, color: '#718096' }}>Flag this item as lost on the public scan page</div>
+                <strong>Lost mode {tag.lostMode && <span className={styles.lostBadge} style={{ position: 'static', marginLeft: 8 }}>ACTIVE</span>}</strong>
+                <div style={{ fontSize: 13, color: '#718096' }}>Flags this item as lost on the public scan page</div>
               </div>
               <button onClick={toggleLostMode} className={styles.addButton} style={{ border: 'none', cursor: 'pointer' }}>
-                {tag.lostMode ? 'Mark Found' : 'Mark Lost'}
+                {tag.lostMode ? 'Remove Lost Mode' : 'Mark as Lost'}
               </button>
             </div>
 
