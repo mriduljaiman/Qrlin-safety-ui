@@ -15,7 +15,6 @@ const Dashboard: React.FC = () => {
     totalScans: 0,
     activeLostMode: 0,
   });
-  const [recentScans, setRecentScans] = useState<any[]>([]);
   const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {

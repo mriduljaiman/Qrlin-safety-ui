@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Lottie from 'lottie-react';
 import styles from './Home.module.css';
 
 const Home: React.FC = () => {

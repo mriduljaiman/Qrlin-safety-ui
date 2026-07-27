@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Layout/Header';
 import ScanHistory from '../components/Scan/ScanHistory';
-import { qrAPI } from '../api/qr';
 import styles from './ScanHistory.module.css';
 
 const ScanHistoryPage: React.FC = () => {
-  const [scans, setScans] = useState([]);
+  const [scans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

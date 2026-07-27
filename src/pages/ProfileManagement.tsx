@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Header from '../components/Layout/Header';
 import Modal from '../components/Common/Modal';
 import Button from '../components/Common/Button';
