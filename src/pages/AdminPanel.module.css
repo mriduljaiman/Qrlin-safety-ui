@@ -1,6 +1,6 @@
 .container {
     min-height: 100vh;
-    background: #f7fafc;
+    background: var(--gray-50);
   }
   
   .content {
@@ -12,7 +12,7 @@
   .content h1 {
     font-size: 32px;
     font-weight: 700;
-    color: #1a202c;
+    color: var(--gray-800);
     margin: 0 0 32px 0;
   }
   
@@ -27,7 +27,7 @@
   .section h2 {
     font-size: 24px;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--gray-700);
     margin: 0 0 24px 0;
   }
   
@@ -41,19 +41,19 @@
   .qrList {
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 2px solid #e2e8f0;
+    border-top: 2px solid var(--gray-200);
   }
   
   .qrList h3 {
     font-size: 18px;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--gray-700);
     margin: 0 0 16px 0;
   }
   
   .qrItem {
     padding: 12px;
-    background: #f7fafc;
+    background: var(--gray-50);
     border-radius: 8px;
     font-family: monospace;
     margin-bottom: 8px;

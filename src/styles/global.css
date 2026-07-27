@@ -1,0 +1,85 @@
+/* Theme overrides - redefine the same variable names from variables.css per data-theme.
+   [data-theme='default'] isn't defined here since :root in variables.css already is default. */
+
+[data-theme='ocean'] {
+  --primary: #0ea5e9;
+  --primary-dark: #0369a1;
+  --primary-light: #38bdf8;
+  --secondary: #0891b2;
+  --gray-50: #f0f9ff;
+  --gray-100: #e0f2fe;
+  --gray-800: #0c4a6e;
+  --gray-900: #082f49;
+}
+
+[data-theme='sunset'] {
+  --primary: #f97316;
+  --primary-dark: #c2410c;
+  --primary-light: #fb923c;
+  --secondary: #db2777;
+  --gray-50: #fff7ed;
+  --gray-100: #ffedd5;
+  --gray-800: #431407;
+  --gray-900: #27090a;
+}
+
+[data-theme='forest'] {
+  --primary: #16a34a;
+  --primary-dark: #166534;
+  --primary-light: #4ade80;
+  --secondary: #15803d;
+  --gray-50: #f0fdf4;
+  --gray-100: #dcfce7;
+  --gray-800: #14532d;
+  --gray-900: #052e16;
+}
+
+[data-theme='rose'] {
+  --primary: #f43f5e;
+  --primary-dark: #be123c;
+  --primary-light: #fb7185;
+  --secondary: #e11d48;
+  --gray-50: #fff1f2;
+  --gray-100: #ffe4e6;
+  --gray-800: #4c0519;
+  --gray-900: #2c0110;
+}
+
+[data-theme='midnight'] {
+  --primary: #818cf8;
+  --primary-dark: #6366f1;
+  --primary-light: #a5b4fc;
+  --secondary: #6366f1;
+  --surface: #1e293b;
+  --gray-50: #0f172a;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-800: #f1f5f9;
+  --gray-900: #f8fafc;
+}
+
+[data-theme='candy'] {
+  --primary: #a855f7;
+  --primary-dark: #7e22ce;
+  --primary-light: #c084fc;
+  --secondary: #ec4899;
+  --gray-50: #faf5ff;
+  --gray-100: #f3e8ff;
+  --gray-800: #3b0764;
+  --gray-900: #2e1065;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}

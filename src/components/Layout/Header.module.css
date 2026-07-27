@@ -1,11 +1,11 @@
 .header {
-    background: white;
+    background: var(--surface);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
   }
-  
+
   .headerContent {
     max-width: 1200px;
     margin: 0 auto;
@@ -15,33 +15,33 @@
     justify-content: space-between;
     height: 70px;
   }
-  
+
   .logo {
     font-size: 24px;
     font-weight: 700;
-    color: #667eea;
+    color: var(--primary);
     text-decoration: none;
   }
-  
+
   .nav {
     display: flex;
     gap: 32px;
   }
-  
+
   .navLink {
-    color: #4a5568;
+    color: var(--gray-600);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
   }
-  
+
   .navLink:hover {
-    color: #667eea;
+    color: var(--primary);
   }
-  
+
   .logoutButton {
     padding: 10px 20px;
-    background: #e53e3e;
+    background: var(--danger);
     color: white;
     border: none;
     border-radius: 6px;
@@ -49,11 +49,11 @@
     cursor: pointer;
     transition: background 0.2s;
   }
-  
+
   .logoutButton:hover {
     background: #c53030;
   }
-  
+
   @media (max-width: 768px) {
     .nav {
       display: none;

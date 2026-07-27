@@ -1,11 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { WebSocketProvider } from './context/WebSocketContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import AddTag from './pages/AddTag';
 import TagDetail from './pages/TagDetail';
 import PublicScan from './pages/PublicScan';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Careers from './pages/Careers';
 import AdminPanel from './pages/AdminPanel';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -27,41 +35,60 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <WebSocketProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/scan/:code" element={<PublicScan />} />
+        <ThemeProvider>
+          <WebSocketProvider>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/scan/:code" element={<PublicScan />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/careers" element={<Careers />} />
 
-            <Route path="/dashboard" element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            } />
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              } />
 
-            <Route path="/tags/new" element={
-              <PrivateRoute>
-                <AddTag />
-              </PrivateRoute>
-            } />
+              <Route path="/tags/new" element={
+                <PrivateRoute>
+                  <AddTag />
+                </PrivateRoute>
+              } />
 
-            <Route path="/tags/:id" element={
-              <PrivateRoute>
-                <TagDetail />
-              </PrivateRoute>
-            } />
+              <Route path="/tags/:id" element={
+                <PrivateRoute>
+                  <TagDetail />
+                </PrivateRoute>
+              } />
 
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminPanel />
-              </AdminRoute>
-            } />
+              <Route path="/profile" element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              } />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </WebSocketProvider>
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              } />
+
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
+              } />
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </WebSocketProvider>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );

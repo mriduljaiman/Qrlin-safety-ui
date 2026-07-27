@@ -21,6 +21,8 @@ const Header: React.FC = () => {
 
         <nav className={styles.nav}>
           <Link to="/dashboard" className={styles.navLink}>My Tags</Link>
+          <Link to="/profile" className={styles.navLink}>Profile</Link>
+          <Link to="/settings" className={styles.navLink}>Settings</Link>
           {user?.role === 'ADMIN' && (
             <Link to="/admin" className={styles.navLink}>Admin</Link>
           )}

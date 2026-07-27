@@ -12,6 +12,15 @@ export const tagsAPI = {
     return response.data;
   },
 
+  listAll: async (): Promise<Tag[]> => {
+    const response = await axios.get('/api/tags/all');
+    return response.data;
+  },
+
+  setActive: async (id: number, active: boolean): Promise<void> => {
+    await axios.patch(`/api/tags/${id}/active`, { active });
+  },
+
   get: async (id: number): Promise<Tag> => {
     const response = await axios.get(`/api/tags/${id}`);
     return response.data;
