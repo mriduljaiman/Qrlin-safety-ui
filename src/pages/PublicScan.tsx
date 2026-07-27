@@ -69,10 +69,20 @@ const PublicScan: React.FC = () => {
         )}
 
         <div className={styles.contactSection}>
-          {tag.maskedContact ? (
-            <p className={styles.maskedContact}>Owner contact: {tag.maskedContact}</p>
-          ) : (
-            <p className={styles.maskedContact}>No contact info shared for this tag.</p>
+          {tag.contactName && <p className={styles.maskedContact}><strong>{tag.contactName}</strong></p>}
+          {tag.contactPhone && (
+            <p className={styles.maskedContact}>
+              📞 <a href={`tel:${tag.contactPhone}`} style={{ color: 'inherit' }}>{tag.contactPhone}</a>
+            </p>
+          )}
+          {tag.address && <p className={styles.maskedContact}>📍 {tag.address}</p>}
+
+          {!tag.contactPhone && !tag.address && (
+            tag.maskedContact ? (
+              <p className={styles.maskedContact}>Owner contact: {tag.maskedContact}</p>
+            ) : (
+              <p className={styles.maskedContact}>No contact info shared for this tag.</p>
+            )
           )}
           <p className={styles.comingSoon}>In-app messaging and masked calling are coming soon.</p>
         </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { tagsAPI } from '../api/tags';
 import { profileAPI } from '../api/profile';
 import { Tag } from '../types/tag';
@@ -91,17 +92,18 @@ const Settings: React.FC = () => {
             <h2 style={{ marginTop: 0 }}>Manage Tags</h2>
             <p style={{ color: 'var(--gray-500)', fontSize: 14 }}>
               Disabling a tag makes its public scan page stop resolving, without deleting it.
+              Click a tag to edit its name, contact phone, and address visibility.
             </p>
             {tags.length === 0 ? (
               <p>No tags yet.</p>
             ) : (
               tags.map((t) => (
                 <div key={t.id} className={styles.toggleRow}>
-                  <div>
+                  <Link to={`/tags/${t.id}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}>
                     <strong>{t.tagName}</strong>
                     <div style={{ fontSize: 13, color: 'var(--gray-500)' }}>{t.category}</div>
-                  </div>
-                  <label className={styles.switch}>
+                  </Link>
+                  <label className={styles.switch} onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={t.active} onChange={() => handleToggleTag(t)} />
                     <span className={styles.switchSlider}></span>
                   </label>

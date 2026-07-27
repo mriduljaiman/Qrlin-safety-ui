@@ -27,6 +27,10 @@ export interface SafetyInfo {
   doctorName: string | null;
   doctorPhone: string | null;
   publicMessage: string | null;
+  address: string | null;
+  showContactName: boolean;
+  showContactPhone: boolean;
+  showAddress: boolean;
 }
 
 export interface PublicTag {
@@ -37,4 +41,7 @@ export interface PublicTag {
   lostMode: boolean;
   publicMessage: string | null;
   maskedContact: string | null;
+  contactName: string | null;
+  contactPhone: string | null;
+  address: string | null;
 }

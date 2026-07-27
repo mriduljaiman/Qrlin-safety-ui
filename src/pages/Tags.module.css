@@ -56,6 +56,80 @@
   gap: 20px;
 }
 
+.welcomeBanner {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border-radius: 16px;
+  padding: 32px;
+  color: white;
+  margin-bottom: 28px;
+}
+
+.welcomeBanner h1 {
+  margin: 0 0 6px 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.welcomeBanner p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 14px;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 600px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.statLabel {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.tagThumb {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-bottom: 12px;
+  background: var(--gray-100);
+}
+
+.tagThumbPlaceholder {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
 .tagCard {
   background: var(--surface);
   border-radius: 12px;
