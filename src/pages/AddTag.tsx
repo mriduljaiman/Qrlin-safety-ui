@@ -7,15 +7,24 @@ import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import styles from './Tags.module.css';
 
-const CATEGORY_SUGGESTIONS = [
-  'Earbuds', 'Headphones', 'Keys', 'Wallet', 'Bag', 'Backpack', 'Luggage',
-  'Bike', 'Bicycle', 'Car', 'Laptop', 'Mobile Phone', 'Tablet', 'Camera',
-  'Drone', 'Watch', 'Pet', 'Medicine Kit', 'Umbrella', 'Water Bottle',
+const CATEGORY_OPTIONS = [
+  'Mobile',
+  'Earpods',
+  'School Bag / Travel Bag',
+  'Children Safety',
+  'Person Safety',
+  'Vehicle Safety',
+  'Pet',
+  'Jewellery',
 ];
+
+const OTHER_VALUE = '__other__';
 
 const AddTag: React.FC = () => {
   const navigate = useNavigate();
-  const [category, setCategory] = useState('');
+  const [categorySelect, setCategorySelect] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
+  const category = categorySelect === OTHER_VALUE ? customCategory : categorySelect;
   const [tagName, setTagName] = useState('');
   const [description, setDescription] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
@@ -79,21 +88,31 @@ const AddTag: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label htmlFor="category">Category</label>
-            <input
+            <select
               id="category"
-              list="category-suggestions"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Earbuds, Bike, Medicine Kit, anything..."
+              value={categorySelect}
+              onChange={(e) => setCategorySelect(e.target.value)}
               required
-              autoComplete="off"
-            />
-            <datalist id="category-suggestions">
-              {CATEGORY_SUGGESTIONS.map((c) => (
-                <option key={c} value={c} />
+              style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8, fontSize: 14, background: 'var(--surface)', color: 'var(--gray-800)' }}
+            >
+              <option value="" disabled>Select a category</option>
+              {CATEGORY_OPTIONS.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
-            </datalist>
-            <span className={styles.hint}>Pick a suggestion or type your own — nothing is fixed.</span>
+              <option value={OTHER_VALUE}>Other (type your own)</option>
+            </select>
+
+            {categorySelect === OTHER_VALUE && (
+              <input
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="Type your own category"
+                required
+                autoFocus
+                style={{ marginTop: 8 }}
+              />
+            )}
+            <span className={styles.hint}>Pick from the list or choose "Other" to type anything — nothing is fixed.</span>
           </div>
 
           <div className={styles.formGroup}>
@@ -162,7 +181,6 @@ const AddTag: React.FC = () => {
                 Remove photo
               </button>
             )}
-            <span className={styles.hint}>Automatically compressed to ~20KB before upload.</span>
           </div>
 
           <button type="submit" className={styles.addButton} disabled={loading || uploadingPhoto} style={{ width: '100%', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
