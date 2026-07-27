@@ -22,7 +22,13 @@ const Login: React.FC = () => {
       login(response);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.request) {
+        setError('Could not reach the server. Check your connection and try again.');
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }

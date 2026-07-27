@@ -27,7 +27,13 @@ const Register: React.FC = () => {
       await authAPI.register(formData);
       navigate('/login', { state: { message: 'Registration successful! Please sign in.' } });
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed');
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.request) {
+        setError('Could not reach the server. Check your connection and try again.');
+      } else {
+        setError('Registration failed');
+      }
     } finally {
       setLoading(false);
     }
