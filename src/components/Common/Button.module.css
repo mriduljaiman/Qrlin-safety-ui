@@ -1,0 +1,72 @@
+.button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 16px;
+  }
+  
+  .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+  
+  .primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  .secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+  }
+  
+  .secondary:hover:not(:disabled) {
+    background: #667eea;
+    color: white;
+  }
+  
+  .danger {
+    background: #e53e3e;
+    color: white;
+  }
+  
+  .danger:hover:not(:disabled) {
+    background: #c53030;
+  }
+  
+  .success {
+    background: #48bb78;
+    color: white;
+  }
+  
+  .success:hover:not(:disabled) {
+    background: #38a169;
+  }
+  
+  .sm {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  
+  .md {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+  
+  .lg {
+    padding: 16px 32px;
+    font-size: 18px;
+  }
+  
+  .fullWidth {
+    width: 100%;
+  }

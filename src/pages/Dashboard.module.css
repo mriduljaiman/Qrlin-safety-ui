@@ -1,0 +1,98 @@
+.dashboardContainer {
+    min-height: 100vh;
+    background: #f7fafc;
+  }
+  
+  .dashboardContent {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  
+  .pageTitle {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 32px 0;
+  }
+  
+  .notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #667eea;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+  }
+  
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+  
+  .statCard {
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .statIcon {
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+  
+  .statValue {
+    font-size: 36px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 8px;
+  }
+  
+  .statLabel {
+    font-size: 14px;
+    color: #718096;
+    font-weight: 500;
+  }
+  
+  .quickActions h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 24px 0;
+  }
+  
+  .actionGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .actionCard {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .actionCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .actionIcon {
+    font-size: 24px;
+  }

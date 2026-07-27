@@ -1,0 +1,68 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { WebSocketProvider } from './context/WebSocketContext';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import QRPublic from './pages/QRPublic';
+import ProfileManagement from './pages/ProfileManagement';
+import ScanHistory from './pages/ScanHistory';
+import AdminPanel from './pages/AdminPanel';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
+import NotFound from './pages/NotFound';
+import { useAuth } from './hooks/useAuth';
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
+  return isAuthenticated && user?.role === 'ADMIN' ? <>{children}</> : <Navigate to="/dashboard" />;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <WebSocketProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/qr/:code" element={<QRPublic />} />
+            
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/profiles" element={
+              <PrivateRoute>
+                <ProfileManagement />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/scans" element={
+              <PrivateRoute>
+                <ScanHistory />
+              </PrivateRoute>
+            } />
+            
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminPanel />
+              </AdminRoute>
+            } />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </WebSocketProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
