@@ -3,6 +3,8 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 import { useAuth } from '../hooks/useAuth';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 interface WebSocketContextType {
   subscribeToScans: (userId: number, callback: (message: any) => void) => void;
   disconnect: () => void;
@@ -21,7 +23,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!isAuthenticated || !user) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(`${API_URL}/ws`),
       reconnectDelay: 5000,
       debug: (str) => console.log(str),
       onConnect: () => {

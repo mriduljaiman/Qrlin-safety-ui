@@ -3,12 +3,13 @@ import { AuthProvider } from './context/AuthContext';
 import { WebSocketProvider } from './context/WebSocketContext';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
-import QRPublic from './pages/QRPublic';
-import ProfileManagement from './pages/ProfileManagement';
-import ScanHistory from './pages/ScanHistory';
+import AddTag from './pages/AddTag';
+import TagDetail from './pages/TagDetail';
+import PublicScan from './pages/PublicScan';
 import AdminPanel from './pages/AdminPanel';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import VerifyEmail from './pages/VerifyEmail';
 import NotFound from './pages/NotFound';
 import { useAuth } from './hooks/useAuth';
 
@@ -31,32 +32,33 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/qr/:code" element={<QRPublic />} />
-            
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/scan/:code" element={<PublicScan />} />
+
             <Route path="/dashboard" element={
               <PrivateRoute>
                 <Dashboard />
               </PrivateRoute>
             } />
-            
-            <Route path="/profiles" element={
+
+            <Route path="/tags/new" element={
               <PrivateRoute>
-                <ProfileManagement />
+                <AddTag />
               </PrivateRoute>
             } />
-            
-            <Route path="/scans" element={
+
+            <Route path="/tags/:id" element={
               <PrivateRoute>
-                <ScanHistory />
+                <TagDetail />
               </PrivateRoute>
             } />
-            
+
             <Route path="/admin" element={
               <AdminRoute>
                 <AdminPanel />
               </AdminRoute>
             } />
-            
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </WebSocketProvider>

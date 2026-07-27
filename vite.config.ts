@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
-        name: 'QR Safety Platform',
-        short_name: 'SafeTag',
-        description: 'QR-based smart safety platform',
+        name: 'Qrlin Safety',
+        short_name: 'Qrlin Safety',
+        description: 'One QR tag for anything you want to protect',
         theme_color: '#4F46E5',
         background_color: '#ffffff',
         display: 'standalone',

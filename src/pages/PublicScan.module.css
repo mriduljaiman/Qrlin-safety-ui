@@ -1,0 +1,96 @@
+.publicContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.lostBanner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #c53030;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.profileCard {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.profileImage {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 20px;
+  border: 4px solid #edf2f7;
+}
+
+.categoryBadge {
+  display: inline-block;
+  background: #edf2f7;
+  color: #4a5568;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.tagName {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 12px 0;
+}
+
+.description {
+  color: #4a5568;
+  margin-bottom: 16px;
+}
+
+.publicMessage {
+  background: #fffaf0;
+  border: 1px solid #feebc8;
+  border-radius: 8px;
+  padding: 16px;
+  color: #7b341e;
+  margin-bottom: 20px;
+}
+
+.contactSection {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.maskedContact {
+  font-size: 14px;
+  color: #718096;
+  margin-bottom: 12px;
+}
+
+.comingSoon {
+  font-size: 13px;
+  color: #a0aec0;
+  font-style: italic;
+}
+
+.loading, .error {
+  color: white;
+  font-size: 18px;
+  text-align: center;
+}

@@ -1,112 +1,77 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { profilesAPI } from '../api/profiles';
+import { tagsAPI } from '../api/tags';
+import { Tag } from '../types/tag';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import Header from '../components/Layout/Header';
-import styles from './Dashboard.module.css';
+import Loading from '../components/Common/Loading';
+import styles from './Tags.module.css';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { subscribeToScans } = useWebSocket();
-  const [stats, setStats] = useState({
-    totalProfiles: 0,
-    totalScans: 0,
-    activeLostMode: 0,
-  });
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadDashboardData();
-    
-    if (user) {
-      subscribeToScans(user.id, (message) => {
-        setNotification(`New scan detected! Location: ${message.location}`);
-        setTimeout(() => setNotification(null), 5000);
-        loadDashboardData();
-      });
-    }
-  }, [user]);
-
-  const loadDashboardData = async () => {
+  const loadTags = async () => {
     try {
-      const profiles = await profilesAPI.getMyProfiles();
-      const totalProfiles = 
-        profiles.pets.length + 
-        profiles.children.length + 
-        profiles.elderly.length + 
-        profiles.items.length;
-      
-      setStats({
-        totalProfiles,
-        totalScans: 0,
-        activeLostMode: profiles.qrCodes.filter((qr: any) => qr.lostMode).length,
-      });
+      const data = await tagsAPI.list();
+      setTags(data);
     } catch (error) {
-      console.error('Failed to load dashboard data', error);
+      console.error('Failed to load tags', error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadTags();
+
+    if (user) {
+      subscribeToScans(user.id, (message: any) => {
+        setNotification(`Your "${message.tagName || 'tag'}" was just scanned`);
+        setTimeout(() => setNotification(null), 5000);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   return (
-    <div className={styles.dashboardContainer}>
+    <div className={styles.container}>
       <Header />
-      
-      {notification && (
-        <motion.div 
-          className={styles.notification}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          {notification}
-        </motion.div>
-      )}
 
-      <div className={styles.dashboardContent}>
-        <h1 className={styles.pageTitle}>Dashboard</h1>
-        
-        <div className={styles.statsGrid}>
-          <motion.div 
-            className={styles.statCard}
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className={styles.statIcon}>📋</div>
-            <div className={styles.statValue}>{stats.totalProfiles}</div>
-            <div className={styles.statLabel}>Total Profiles</div>
-          </motion.div>
+      {notification && <div className={styles.notification}>{notification}</div>}
 
-          <motion.div 
-            className={styles.statCard}
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className={styles.statIcon}>👁️</div>
-            <div className={styles.statValue}>{stats.totalScans}</div>
-            <div className={styles.statLabel}>Total Scans</div>
-          </motion.div>
-
-          <motion.div 
-            className={styles.statCard}
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className={styles.statIcon}>🚨</div>
-            <div className={styles.statValue}>{stats.activeLostMode}</div>
-            <div className={styles.statLabel}>Lost Mode Active</div>
-          </motion.div>
+      <div className={styles.content}>
+        <div className={styles.headerRow}>
+          <h1 className={styles.pageTitle}>My Tags</h1>
+          <Link to="/tags/new" className={styles.addButton}>+ Add Tag</Link>
         </div>
 
-        <div className={styles.quickActions}>
-          <h2>Quick Actions</h2>
-          <div className={styles.actionGrid}>
-            <Link to="/profiles" className={styles.actionCard}>
-              <span className={styles.actionIcon}>➕</span>
-              <span>Create Profile</span>
-            </Link>
-            <Link to="/scans" className={styles.actionCard}>
-              <span className={styles.actionIcon}>📊</span>
-              <span>View Scans</span>
+        {loading ? (
+          <Loading fullScreen={false} />
+        ) : tags.length === 0 ? (
+          <div className={styles.emptyState}>
+            <h2>No tags yet</h2>
+            <p>Add your first tag — earbuds, keys, a bag, anything.</p>
+            <Link to="/tags/new" className={styles.addButton} style={{ marginTop: 16, display: 'inline-flex' }}>
+              + Add Your First Tag
             </Link>
           </div>
-        </div>
+        ) : (
+          <div className={styles.grid}>
+            {tags.map((tag) => (
+              <Link to={`/tags/${tag.id}`} key={tag.id} className={styles.tagCard}>
+                {tag.lostMode && <span className={styles.lostBadge}>LOST</span>}
+                <span className={styles.categoryBadge}>{tag.category}</span>
+                <h3 className={styles.tagName}>{tag.tagName}</h3>
+                {tag.description && <p className={styles.tagDescription}>{tag.description}</p>}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

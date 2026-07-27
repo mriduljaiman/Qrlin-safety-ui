@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../../api/auth';
+import { useAuth } from '../../hooks/useAuth';
+import GoogleSignInButton from './GoogleSignInButton';
 import styles from './Auth.module.css';
 
 const Register: React.FC = () => {
@@ -13,6 +15,7 @@ const Register: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,7 +28,7 @@ const Register: React.FC = () => {
 
     try {
       await authAPI.register(formData);
-      navigate('/login', { state: { message: 'Registration successful! Please sign in.' } });
+      navigate('/verify-email', { state: { email: formData.email } });
     } catch (err: any) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
@@ -39,11 +42,22 @@ const Register: React.FC = () => {
     }
   };
 
+  const handleGoogleToken = async (idToken: string) => {
+    setError('');
+    try {
+      const response = await authAPI.googleLogin({ idToken });
+      login(response);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Google sign-in failed');
+    }
+  };
+
   return (
     <div className={styles.authContainer}>
       <div className={styles.authCard}>
         <h1 className={styles.authTitle}>Create Account</h1>
-        <p className={styles.authSubtitle}>Join SafeTag to protect what matters</p>
+        <p className={styles.authSubtitle}>Join Qrlin Safety to protect what matters</p>
 
         <form onSubmit={handleSubmit} className={styles.authForm}>
           {error && <div className={styles.error}>{error}</div>}
@@ -104,6 +118,8 @@ const Register: React.FC = () => {
             {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
+
+        <GoogleSignInButton onToken={handleGoogleToken} />
 
         <p className={styles.authFooter}>
           Already have an account? <Link to="/login">Sign in</Link>

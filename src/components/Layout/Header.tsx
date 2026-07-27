@@ -16,13 +16,11 @@ const Header: React.FC = () => {
     <header className={styles.header}>
       <div className={styles.headerContent}>
         <Link to="/dashboard" className={styles.logo}>
-          SafeTag
+          Qrlin Safety
         </Link>
 
         <nav className={styles.nav}>
-          <Link to="/dashboard" className={styles.navLink}>Dashboard</Link>
-          <Link to="/profiles" className={styles.navLink}>Profiles</Link>
-          <Link to="/scans" className={styles.navLink}>Scans</Link>
+          <Link to="/dashboard" className={styles.navLink}>My Tags</Link>
           {user?.role === 'ADMIN' && (
             <Link to="/admin" className={styles.navLink}>Admin</Link>
           )}
