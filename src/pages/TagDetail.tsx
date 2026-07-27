@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { tagsAPI } from '../api/tags';
 import { profileAPI } from '../api/profile';
+import { uploadsAPI } from '../api/uploads';
+import { compressImageToTarget } from '../utils/imageCompression';
 import { Tag, SafetyInfo } from '../types/tag';
 import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
+import ChatPanel from '../components/ChatPanel';
 import styles from './Tags.module.css';
 
 const emptySafetyInfo: SafetyInfo = {
@@ -18,9 +21,11 @@ const emptySafetyInfo: SafetyInfo = {
   doctorPhone: '',
   publicMessage: '',
   address: '',
+  whatsappNumber: '',
   showContactName: false,
   showContactPhone: false,
   showAddress: false,
+  showWhatsapp: false,
 };
 
 const TagDetail: React.FC = () => {
@@ -33,6 +38,8 @@ const TagDetail: React.FC = () => {
   const [savingSafety, setSavingSafety] = useState(false);
   const [error, setError] = useState('');
   const [safetyError, setSafetyError] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -55,6 +62,7 @@ const TagDetail: React.FC = () => {
             ...emptySafetyInfo,
             emergencyContactName: profile.fullName || '',
             emergencyContactPhone: profile.phone || '',
+            whatsappNumber: profile.whatsappNumber || '',
           });
         }
 
@@ -87,6 +95,30 @@ const TagDetail: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Could not deactivate tag');
+    }
+  };
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !tag) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file');
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setError('');
+    try {
+      const compressed = await compressImageToTarget(file, 20 * 1024, 400);
+      const { url } = await uploadsAPI.uploadPhoto(compressed);
+      const updated = await tagsAPI.update(tag.id, { category: tag.category, tagName: tag.tagName, photoUrl: url });
+      setTag(updated);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Could not upload photo');
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -169,6 +201,40 @@ const TagDetail: React.FC = () => {
                 Print this and stick it on your item. Anyone who scans it sees only what you've chosen to share.
               </p>
             </div>
+
+            <div
+              onClick={() => !uploadingPhoto && fileInputRef.current?.click()}
+              style={{
+                position: 'relative',
+                cursor: uploadingPhoto ? 'default' : 'pointer',
+                border: '2px dashed var(--gray-200)',
+                borderRadius: 8,
+                padding: tag.photoUrl ? 0 : 20,
+                textAlign: 'center',
+                overflow: 'hidden',
+                marginTop: 16,
+              }}
+            >
+              {tag.photoUrl ? (
+                <img src={tag.photoUrl} alt={tag.tagName} style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
+              ) : (
+                <span style={{ color: 'var(--gray-400)', fontSize: 14 }}>
+                  {uploadingPhoto ? 'Uploading...' : '📷 Click to add a photo'}
+                </span>
+              )}
+              {uploadingPhoto && (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Loading size="sm" />
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoSelect}
+              style={{ display: 'none' }}
+            />
 
             {tag.description && (
               <p style={{ marginTop: 16 }}>{tag.description}</p>
@@ -257,6 +323,26 @@ const TagDetail: React.FC = () => {
 
               <div className={styles.toggleRow}>
                 <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-700)' }}>WhatsApp number</label>
+                  <input
+                    value={safetyInfo.whatsappNumber || ''}
+                    onChange={(e) => setSafetyInfo({ ...safetyInfo, whatsappNumber: e.target.value })}
+                    placeholder="+91XXXXXXXXXX"
+                    style={{ marginTop: 6, padding: '10px 12px', border: '2px solid var(--gray-200)', borderRadius: 8, width: '100%', background: 'var(--surface)', color: 'var(--gray-800)' }}
+                  />
+                </div>
+                <label className={styles.switch} style={{ marginLeft: 12, alignSelf: 'flex-end', marginBottom: 4 }} title="Show on public scan">
+                  <input
+                    type="checkbox"
+                    checked={safetyInfo.showWhatsapp}
+                    onChange={(e) => setSafetyInfo({ ...safetyInfo, showWhatsapp: e.target.checked })}
+                  />
+                  <span className={styles.switchSlider}></span>
+                </label>
+              </div>
+
+              <div className={styles.toggleRow}>
+                <div style={{ flex: 1 }}>
                   <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--gray-700)' }}>Address</label>
                   <input
                     value={safetyInfo.address || ''}
@@ -289,6 +375,8 @@ const TagDetail: React.FC = () => {
             </form>
           </div>
         </div>
+
+        <ChatPanel tagId={tag.id} />
       </div>
     </div>
   );

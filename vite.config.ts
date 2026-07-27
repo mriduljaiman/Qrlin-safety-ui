@@ -7,6 +7,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Without these, a new service worker sits "waiting" until every open tab
+        // of the old version closes, so users kept seeing stale app code after a
+        // deploy (this repeatedly showed up as "the fix isn't there") until they
+        // manually hard-refreshed. This makes new deploys take effect immediately.
+        skipWaiting: true,
+        clientsClaim: true,
+      },
       includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
       manifest: {
         name: 'Qrlin Safety',

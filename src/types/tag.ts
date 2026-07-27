@@ -28,9 +28,11 @@ export interface SafetyInfo {
   doctorPhone: string | null;
   publicMessage: string | null;
   address: string | null;
+  whatsappNumber: string | null;
   showContactName: boolean;
   showContactPhone: boolean;
   showAddress: boolean;
+  showWhatsapp: boolean;
 }
 
 export interface PublicTag {
@@ -44,4 +46,20 @@ export interface PublicTag {
   contactName: string | null;
   contactPhone: string | null;
   address: string | null;
+  whatsappNumber: string | null;
+}
+
+export interface ChatMessage {
+  id: number;
+  senderRole: 'OWNER' | 'FINDER';
+  body: string;
+  sentAt: string;
+}
+
+export interface ChatThread {
+  id: number;
+  status: string;
+  lastMessageAt: string;
+  messages: ChatMessage[];
+  sessionToken?: string;
 }
