@@ -7,7 +7,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { profileAPI } from '../api/profile';
 import { Preferences } from '../types/profile';
 import { playNotificationSound } from '../utils/notificationSounds';
-import { getTimezoneForCountry } from '../utils/countryTimezones';
+import { useCountryTimezone } from '../hooks/useCountryTimezone';
 
 interface ScanEvent {
   type: string;

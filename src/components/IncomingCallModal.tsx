@@ -35,6 +35,7 @@ const IncomingCallModal: React.FC = () => {
     'callee'
   );
   const joinedForRef = useRef<string | null>(null);
+  const closedForRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user || !connected) return;
@@ -71,16 +72,41 @@ const IncomingCallModal: React.FC = () => {
     };
   }, [call, accepted]);
 
+  // Fires whether the owner hung up or the finder did - either way `state` lands here once
+  // the call was actually joined, so this is the one place that reports the outcome and
+  // dismisses the popup instead of duplicating that in the Hang Up button handler too.
+  useEffect(() => {
+    if (!call || !accepted) return;
+    if ((state === 'ended' || state === 'failed') && closedForRef.current !== call.sessionToken) {
+      closedForRef.current = call.sessionToken;
+      (async () => {
+        try {
+          const status = state === 'failed' ? 'FAILED' : durationSeconds > 0 ? 'COMPLETED' : 'MISSED';
+          await callAPI.reportEnd(call.qrCode, call.sessionToken, status, durationSeconds);
+        } catch {
+          // Best-effort.
+        }
+        setCall(null);
+        setAccepted(false);
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, accepted, call]);
+
   const handleAccept = () => {
     setAccepted(true);
   };
 
   const handleEnd = async () => {
     if (!call) return;
-    const finalStatus = accepted && state === 'connected' ? 'COMPLETED' : 'MISSED';
-    if (accepted) hangup();
+    if (accepted) {
+      // Reported by the effect above once `state` reflects the hangup.
+      hangup();
+      return;
+    }
+    // Declining before ever answering - no signaling session to tear down.
     try {
-      await callAPI.reportEnd(call.qrCode, call.sessionToken, finalStatus, durationSeconds);
+      await callAPI.reportEnd(call.qrCode, call.sessionToken, 'MISSED', 0);
     } catch {
       // Best-effort.
     }

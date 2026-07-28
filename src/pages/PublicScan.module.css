@@ -98,16 +98,11 @@
   margin-bottom: 20px;
 }
 
-.contactSection {
-  border-top: 1px solid #e2e8f0;
-  padding-top: 20px;
-  margin-top: 20px;
-}
-
 .maskedContact {
   font-size: 14px;
   color: #718096;
-  margin-bottom: 12px;
+  margin-top: 20px;
+  text-align: center;
 }
 
 .comingSoon {
@@ -122,9 +117,20 @@
   text-align: center;
 }
 
+/* Every way to reach the owner lives in this one stack, in a fixed
+   predictable order, right after the tag's own info - not scattered
+   around the page or buried below a wall of contact text. */
+.primaryActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
 .actionButton {
-  margin-top: 12px;
-  padding: 10px 20px;
+  padding: 12px 20px;
   background: var(--primary);
   color: white;
   border: none;
@@ -133,10 +139,11 @@
   font-weight: 600;
   width: 100%;
   font-size: 15px;
+  box-sizing: border-box;
 }
 
 .callButton {
-  padding: 10px 20px;
+  padding: 12px 20px;
   background: #38a169;
   color: white;
   border: none;
@@ -145,18 +152,72 @@
   font-weight: 600;
   width: 100%;
   font-size: 15px;
+  box-sizing: border-box;
 }
 
-.actionsColumn {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
+.callButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.whatsappButton {
+  display: block;
+  padding: 12px 20px;
+  background: #25d366;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  font-size: 15px;
+  box-sizing: border-box;
+  text-align: center;
+  text-decoration: none;
 }
 
 .chatPanel {
-  margin-top: 16px;
+  margin-top: 4px;
   text-align: left;
+}
+
+/* Read-only info (name, phone text, address, custom fields) - visually
+   distinct from the tappable action buttons above so the two don't blur
+   together into one long list. */
+.infoBlock {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: #f7fafc;
+  border-radius: 10px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.infoIcon {
+  flex-shrink: 0;
+}
+
+.infoLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Deliberately separated from Call/WhatsApp/Message above - this is an
+   emergency-only action and shouldn't compete visually with everyday
+   contact options. */
+.sosSection {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .chatBox {

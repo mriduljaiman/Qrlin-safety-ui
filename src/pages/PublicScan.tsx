@@ -136,6 +136,8 @@ const PublicScan: React.FC = () => {
     );
   }
 
+  const hasInfoBlock = !!(tag.contactName || tag.address || (tag.customFields && tag.customFields.length > 0));
+
   return (
     <div className={styles.publicContainer}>
       {tag.lostMode && (
@@ -160,48 +162,26 @@ const PublicScan: React.FC = () => {
           <div className={styles.publicMessage}>{tag.publicMessage}</div>
         )}
 
-        <div className={styles.contactSection}>
-          {tag.contactName && <p className={styles.maskedContact}><strong>{tag.contactName}</strong></p>}
-          {tag.contactPhone && (
-            <p className={styles.maskedContact}>
-              📞 <a href={`tel:${tag.contactPhone}`} style={{ color: 'inherit' }}>{tag.contactPhone}</a>
-            </p>
-          )}
+        {/* Every way to reach the owner, grouped together in one place */}
+        <div className={styles.primaryActions}>
+          <button onClick={handleStartCall} disabled={callStarting} className={styles.callButton}>
+            📞 {callStarting ? 'Calling...' : 'Call Owner (free)'}
+          </button>
+
           {tag.whatsappNumber && (
-            <p className={styles.maskedContact}>
-              <a
-                href={`https://wa.me/${tag.whatsappNumber.replace(/[^0-9]/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: '#25D366', fontWeight: 600, textDecoration: 'none' }}
-              >
-                💬 Message on WhatsApp
-              </a>
-            </p>
-          )}
-          {tag.address && <p className={styles.maskedContact}>📍 {tag.address}</p>}
-
-          {tag.customFields && tag.customFields.length > 0 && (
-            <div style={{ marginTop: 8, textAlign: 'left' }}>
-              {tag.customFields.map((field, i) => (
-                <p key={i} className={styles.maskedContact} style={{ margin: '4px 0' }}>
-                  <strong>{field.label}:</strong> {field.value}
-                </p>
-              ))}
-            </div>
-          )}
-
-          {!tag.contactPhone && !tag.address && !tag.whatsappNumber && (
-            tag.maskedContact ? (
-              <p className={styles.maskedContact}>Owner contact: {tag.maskedContact}</p>
-            ) : (
-              <p className={styles.maskedContact}>No contact info shared for this tag.</p>
-            )
+            <a
+              href={`https://wa.me/${tag.whatsappNumber.replace(/[^0-9]/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.whatsappButton}
+            >
+              💬 Message on WhatsApp
+            </a>
           )}
 
           {!chatOpen ? (
             <button onClick={openChat} className={styles.actionButton}>
-              💬 Message Owner (free, anonymous)
+              ✉️ Message Owner (free, anonymous)
             </button>
           ) : (
             <div className={styles.chatPanel}>
@@ -242,13 +222,47 @@ const PublicScan: React.FC = () => {
               </form>
             </div>
           )}
+        </div>
 
-          <div className={styles.actionsColumn}>
-            <button onClick={handleStartCall} disabled={callStarting} className={styles.callButton}>
-              📞 {callStarting ? 'Calling...' : 'Call Owner (free)'}
-            </button>
-            {code && <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />}
+        {/* Read-only contact details, kept separate from the tappable actions above */}
+        {hasInfoBlock && (
+          <div className={styles.infoBlock}>
+            {tag.contactName && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoIcon}>👤</span>
+                <span>{tag.contactName}</span>
+              </div>
+            )}
+            {tag.contactPhone && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoIcon}>📞</span>
+                <a href={`tel:${tag.contactPhone}`} className={styles.infoLink}>{tag.contactPhone}</a>
+              </div>
+            )}
+            {tag.address && (
+              <div className={styles.infoRow}>
+                <span className={styles.infoIcon}>📍</span>
+                <span>{tag.address}</span>
+              </div>
+            )}
+            {tag.customFields?.map((field, i) => (
+              <div className={styles.infoRow} key={i}>
+                <span className={styles.infoIcon}>ℹ️</span>
+                <span><strong>{field.label}:</strong> {field.value}</span>
+              </div>
+            ))}
           </div>
+        )}
+
+        {!tag.contactPhone && !tag.address && !tag.whatsappNumber && (
+          <p className={styles.maskedContact}>
+            {tag.maskedContact ? `Owner contact: ${tag.maskedContact}` : 'No contact info shared for this tag.'}
+          </p>
+        )}
+
+        {/* Emergency-only action, deliberately set apart from the calm actions above */}
+        <div className={styles.sosSection}>
+          {code && <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />}
         </div>
       </div>
 

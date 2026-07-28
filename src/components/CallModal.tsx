@@ -14,6 +14,7 @@ interface CallModalProps {
 const CallModal: React.FC<CallModalProps> = ({ code, sessionToken, iceServers, onClose }) => {
   const { state, durationSeconds, audioRef, join, hangup } = useCallSignaling(sessionToken, iceServers, 'caller');
   const joinedRef = useRef(false);
+  const closedRef = useRef(false);
 
   useEffect(() => {
     if (!joinedRef.current) {
@@ -22,15 +23,27 @@ const CallModal: React.FC<CallModalProps> = ({ code, sessionToken, iceServers, o
     }
   }, [join]);
 
-  const handleClose = async () => {
-    const finalStatus = state === 'connected' ? 'COMPLETED' : 'MISSED';
-    hangup();
-    try {
-      await callAPI.reportEnd(code, sessionToken, finalStatus, durationSeconds);
-    } catch {
-      // Best-effort - the session is already ended client-side either way.
+  // Fires whether *we* hung up or the owner did - either way `state` ends up here, so this
+  // is the one place that reports the call's outcome and closes the modal, instead of
+  // duplicating that logic in the Hang Up button handler too.
+  useEffect(() => {
+    if ((state === 'ended' || state === 'failed') && !closedRef.current) {
+      closedRef.current = true;
+      (async () => {
+        try {
+          const status = state === 'failed' ? 'FAILED' : durationSeconds > 0 ? 'COMPLETED' : 'MISSED';
+          await callAPI.reportEnd(code, sessionToken, status, durationSeconds);
+        } catch {
+          // Best-effort - the session is already ended client-side either way.
+        }
+        onClose();
+      })();
     }
-    onClose();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  const handleClose = () => {
+    hangup();
   };
 
   const statusLabel =

@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { tagsAPI } from '../api/tags';
 import { Tag } from '../types/tag';
-import { QR_STYLES, QrStyleId, colorsAreTooClose, renderCustomQr } from '../utils/customQrRenderer';
+import { QR_STYLES, QrStyleId, colorsAreTooClose, renderCustomQr, renderPrintableQr } from '../utils/customQrRenderer';
+import { getSuggestedSizeCm } from '../utils/qrSizeSuggestions';
 import styles from './QrCustomizer.module.css';
 
 const DEFAULT_TITLE_ABOVE = 'SCAN ME 🙂';
+const PRINT_DPI = 300;
+const CM_TO_INCH = 1 / 2.54;
 
 interface QrCustomizerProps {
   tag: Tag;
@@ -23,6 +26,11 @@ const QrCustomizer: React.FC<QrCustomizerProps> = ({ tag, onSaved }) => {
   const [error, setError] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const suggestedSize = getSuggestedSizeCm(tag.category);
+  const [widthCm, setWidthCm] = useState(suggestedSize.width);
+  const [heightCm, setHeightCm] = useState(suggestedSize.height);
+  const [showSizeHelp, setShowSizeHelp] = useState(false);
+
   const scanUrl = `${window.location.origin}/scan/${tag.qrCode}`;
   const tooClose = colorsAreTooClose(fgColor, bgColor);
 
@@ -31,6 +39,40 @@ const QrCustomizer: React.FC<QrCustomizerProps> = ({ tag, onSaved }) => {
     renderCustomQr(canvasRef.current, scanUrl, { fgColor, bgColor, style, centerText, size: 240 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanUrl, fgColor, bgColor, style, centerText]);
+
+  const handleDownload = () => {
+    if (tooClose) {
+      setError('QR color and background color are too similar — please pick different colors.');
+      return;
+    }
+    const w = Math.max(1, widthCm);
+    const h = Math.max(1, heightCm);
+    const widthPx = Math.round(w * CM_TO_INCH * PRINT_DPI);
+    const heightPx = Math.round(h * CM_TO_INCH * PRINT_DPI);
+
+    const printCanvas = document.createElement('canvas');
+    renderPrintableQr(printCanvas, scanUrl, {
+      fgColor,
+      bgColor,
+      style,
+      centerText,
+      titleAbove,
+      titleBelow,
+      widthPx,
+      heightPx,
+    });
+
+    const link = document.createElement('a');
+    link.download = `${tag.tagName.replace(/[^a-z0-9]+/gi, '-') || 'qr'}-${w}x${h}cm.png`;
+    link.href = printCanvas.toDataURL('image/png');
+    link.click();
+  };
+
+  const applySuggestedSize = () => {
+    setWidthCm(suggestedSize.width);
+    setHeightCm(suggestedSize.height);
+    setShowSizeHelp(false);
+  };
 
   const handleSave = async () => {
     if (tooClose) {
@@ -138,14 +180,70 @@ const QrCustomizer: React.FC<QrCustomizerProps> = ({ tag, onSaved }) => {
             />
           </div>
 
-          <button
-            type="button"
-            className={styles.saveButton}
-            onClick={handleSave}
-            disabled={saving || tooClose}
-          >
-            {saving ? 'Saving...' : 'Save QR Design'}
-          </button>
+          <div className={styles.formGroup}>
+            <label>Download size (for printing)</label>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <input
+                type="number"
+                min={1}
+                step={0.5}
+                value={widthCm}
+                onChange={(e) => setWidthCm(Math.max(0.5, Number(e.target.value) || 0))}
+                style={{ width: 70 }}
+              />
+              <span style={{ color: 'var(--gray-500)' }}>×</span>
+              <input
+                type="number"
+                min={1}
+                step={0.5}
+                value={heightCm}
+                onChange={(e) => setHeightCm(Math.max(0.5, Number(e.target.value) || 0))}
+                style={{ width: 70 }}
+              />
+              <span style={{ color: 'var(--gray-500)', fontSize: 13 }}>cm (L × W)</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSizeHelp(!showSizeHelp)}
+              style={{ marginTop: 8, background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: 0 }}
+            >
+              {showSizeHelp ? 'Hide' : 'Check approx size'}
+            </button>
+
+            {showSizeHelp && (
+              <div style={{ marginTop: 8, padding: 12, background: 'var(--gray-50)', borderRadius: 8, fontSize: 13 }}>
+                Recommended for <strong>{tag.category}</strong>: {suggestedSize.width} × {suggestedSize.height} cm
+                <button
+                  type="button"
+                  onClick={applySuggestedSize}
+                  style={{ marginLeft: 10, background: 'none', border: '1px solid var(--primary)', color: 'var(--primary)', borderRadius: 6, padding: '2px 8px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
+                >
+                  Use this size
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              type="button"
+              className={styles.saveButton}
+              onClick={handleSave}
+              disabled={saving || tooClose}
+              style={{ flex: 1 }}
+            >
+              {saving ? 'Saving...' : 'Save QR Design'}
+            </button>
+            <button
+              type="button"
+              className={styles.saveButton}
+              onClick={handleDownload}
+              disabled={tooClose}
+              style={{ flex: 1, background: 'var(--surface)', color: 'var(--primary)', border: '2px solid var(--primary)' }}
+            >
+              ⬇️ Download
+            </button>
+          </div>
         </div>
       )}
     </div>

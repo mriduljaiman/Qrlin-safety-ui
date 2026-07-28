@@ -95,6 +95,19 @@ export const useCallSignaling = (
     return pc;
   }, [iceServers, send]);
 
+  // Tears down local resources without notifying the other side - used both for our own
+  // hangup (after the 'hangup' signal is sent) and when we're the one told to hang up, so
+  // stale mic/peer-connection/socket state never lingers on either end of a call.
+  const cleanup = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    pcRef.current?.close();
+    pcRef.current = null;
+    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    localStreamRef.current = null;
+    stompRef.current?.deactivate();
+    stompRef.current = null;
+  }, []);
+
   const join = useCallback(async () => {
     if (!sessionToken || stompRef.current) return;
     setState('connecting');
@@ -138,6 +151,7 @@ export const useCallSignaling = (
                 // Candidate can arrive before remote description is set in rare races - safe to drop.
               }
             } else if (payload.kind === 'hangup') {
+              cleanup();
               setState('ended');
             }
           } catch (err) {
@@ -160,27 +174,17 @@ export const useCallSignaling = (
 
     client.activate();
     stompRef.current = client;
-  }, [sessionToken, role, ensurePeerConnection, send]);
+  }, [sessionToken, role, ensurePeerConnection, send, cleanup]);
 
   const hangup = useCallback(() => {
     send({ kind: 'hangup' });
-    if (timerRef.current) clearInterval(timerRef.current);
-    pcRef.current?.close();
-    pcRef.current = null;
-    localStreamRef.current?.getTracks().forEach((t) => t.stop());
-    localStreamRef.current = null;
-    stompRef.current?.deactivate();
-    stompRef.current = null;
+    cleanup();
     setState('ended');
-  }, [send]);
+  }, [send, cleanup]);
 
   useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      pcRef.current?.close();
-      localStreamRef.current?.getTracks().forEach((t) => t.stop());
-      stompRef.current?.deactivate();
-    };
+    return cleanup;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { state, durationSeconds, audioRef, join, hangup };

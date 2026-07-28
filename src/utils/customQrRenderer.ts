@@ -260,3 +260,58 @@ export function renderCustomQr(canvas: HTMLCanvasElement, text: string, options:
     ctx.fillText(trimmedCenterText, size / 2, size / 2);
   }
 }
+
+export interface PrintableQrOptions extends QrRenderOptions {
+  widthPx: number;
+  heightPx: number;
+  titleAbove?: string;
+  titleBelow?: string;
+}
+
+// Composes the full printable sticker (title above + QR + title below) onto
+// a canvas sized to the requested print dimensions, reusing renderCustomQr
+// for the QR pattern itself.
+export function renderPrintableQr(canvas: HTMLCanvasElement, text: string, options: PrintableQrOptions): void {
+  const { widthPx, heightPx, titleAbove, titleBelow, bgColor, fgColor } = options;
+
+  canvas.width = widthPx;
+  canvas.height = heightPx;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, widthPx, heightPx);
+
+  const shortSide = Math.min(widthPx, heightPx);
+  const padding = Math.round(shortSide * 0.05);
+  const fontSize = Math.max(10, Math.round(shortSide * 0.09));
+
+  let top = padding;
+  let bottom = heightPx - padding;
+
+  ctx.fillStyle = fgColor;
+  ctx.textAlign = 'center';
+  ctx.font = `600 ${fontSize}px sans-serif`;
+
+  if (titleAbove) {
+    ctx.textBaseline = 'top';
+    ctx.fillText(titleAbove, widthPx / 2, top, widthPx - padding * 2);
+    top += fontSize * 1.5;
+  }
+  if (titleBelow) {
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(titleBelow, widthPx / 2, bottom, widthPx - padding * 2);
+    bottom -= fontSize * 1.5;
+  }
+
+  const availableWidth = widthPx - padding * 2;
+  const availableHeight = bottom - top;
+  const qrSize = Math.max(10, Math.min(availableWidth, availableHeight));
+
+  const qrCanvas = document.createElement('canvas');
+  renderCustomQr(qrCanvas, text, { ...options, size: qrSize });
+
+  const qrX = (widthPx - qrSize) / 2;
+  const qrY = top + (availableHeight - qrSize) / 2;
+  ctx.drawImage(qrCanvas, qrX, qrY);
+}
