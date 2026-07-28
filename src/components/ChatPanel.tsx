@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { chatAPI } from '../api/chat';
 import { ChatThread } from '../types/tag';
+import VoiceMessageBubble from './VoiceMessageBubble';
+import VoiceRecorderButton from './VoiceRecorderButton';
 import styles from '../pages/Tags.module.css';
 
 interface ChatPanelProps {
@@ -53,6 +55,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleSendVoiceNote = async (blob: Blob, durationSeconds: number) => {
+    if (!activeThreadId) return;
+    const audioUrl = await chatAPI.uploadVoiceNote(blob);
+    const updated = await chatAPI.replyVoiceNote(tagId, activeThreadId, audioUrl, durationSeconds);
+    setThreads((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
   };
 
   if (loading) return null;
@@ -118,7 +127,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
                     fontSize: 14,
                   }}
                 >
-                  {m.body}
+                  {m.messageType === 'VOICE_NOTE' && m.audioUrl ? (
+                    <VoiceMessageBubble audioUrl={m.audioUrl} durationSeconds={m.audioDurationSeconds} />
+                  ) : (
+                    m.body
+                  )}
                   <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>
                     {new Date(m.sentAt).toLocaleTimeString()}
                   </div>
@@ -126,13 +139,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
               ))}
             </div>
 
-            <form onSubmit={handleReply} style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <form onSubmit={handleReply} style={{ display: 'flex', gap: 8, marginTop: 10, alignItems: 'center' }}>
               <input
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
                 placeholder="Type a reply..."
                 style={{ flex: 1, padding: '10px 12px', border: '2px solid var(--gray-200)', borderRadius: 8, background: 'var(--surface)', color: 'var(--gray-800)' }}
               />
+              <VoiceRecorderButton onSend={handleSendVoiceNote} />
               <button
                 type="submit"
                 disabled={sending || !reply.trim()}

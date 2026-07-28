@@ -3,8 +3,13 @@ import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { publicScanAPI } from '../api/tags';
 import { chatAPI } from '../api/chat';
+import { callAPI } from '../api/calls';
 import { useGeolocation } from '../hooks/useGeolocation';
-import { PublicTag, ChatMessage } from '../types/tag';
+import { PublicTag, ChatMessage, IceServer } from '../types/tag';
+import VoiceMessageBubble from '../components/VoiceMessageBubble';
+import VoiceRecorderButton from '../components/VoiceRecorderButton';
+import CallModal from '../components/CallModal';
+import SosButton from '../components/SosButton';
 import styles from './PublicScan.module.css';
 
 const PublicScan: React.FC = () => {
@@ -20,6 +25,9 @@ const PublicScan: React.FC = () => {
   const [sendingChat, setSendingChat] = useState(false);
   const sessionTokenRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [activeCall, setActiveCall] = useState<{ sessionToken: string; iceServers: IceServer[] } | null>(null);
+  const [callStarting, setCallStarting] = useState(false);
 
   useEffect(() => {
     // Wait for geolocation to actually settle (got coordinates, got denied, or
@@ -85,6 +93,30 @@ const PublicScan: React.FC = () => {
       console.error('Failed to send message', err);
     } finally {
       setSendingChat(false);
+    }
+  };
+
+  const handleSendVoiceNote = async (blob: Blob, durationSeconds: number) => {
+    if (!code) return;
+    const audioUrl = await chatAPI.uploadVoiceNote(blob);
+    const thread = await chatAPI.sendPublicVoiceNote(code, audioUrl, durationSeconds, sessionTokenRef.current || undefined);
+    setMessages(thread.messages);
+    if (thread.sessionToken) {
+      sessionTokenRef.current = thread.sessionToken;
+      localStorage.setItem(`chat_token_${code}`, thread.sessionToken);
+    }
+  };
+
+  const handleStartCall = async () => {
+    if (!code) return;
+    setCallStarting(true);
+    try {
+      const { sessionToken, iceServers } = await callAPI.initiate(code);
+      setActiveCall({ sessionToken, iceServers });
+    } catch (err) {
+      console.error('Failed to start call', err);
+    } finally {
+      setCallStarting(false);
     }
   };
 
@@ -190,17 +222,22 @@ const PublicScan: React.FC = () => {
                       padding: '8px 12px', borderRadius: 12, maxWidth: '85%', fontSize: 14,
                     }}
                   >
-                    {m.body}
+                    {m.messageType === 'VOICE_NOTE' && m.audioUrl ? (
+                      <VoiceMessageBubble audioUrl={m.audioUrl} durationSeconds={m.audioDurationSeconds} />
+                    ) : (
+                      m.body
+                    )}
                   </div>
                 ))}
               </div>
-              <form onSubmit={handleSendChat} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <form onSubmit={handleSendChat} style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type a message..."
                   style={{ flex: 1, padding: '10px 12px', border: '2px solid #e2e8f0', borderRadius: 8 }}
                 />
+                <VoiceRecorderButton onSend={handleSendVoiceNote} />
                 <button
                   type="submit"
                   disabled={sendingChat || !chatInput.trim()}
@@ -212,9 +249,30 @@ const PublicScan: React.FC = () => {
             </div>
           )}
 
-          <p className={styles.comingSoon}>Masked calling is coming soon.</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, marginTop: 20 }}>
+            <button
+              onClick={handleStartCall}
+              disabled={callStarting}
+              style={{
+                padding: '10px 20px', background: '#38a169', color: 'white',
+                border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600,
+              }}
+            >
+              📞 {callStarting ? 'Calling...' : 'Call Owner (free)'}
+            </button>
+            {code && <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />}
+          </div>
         </div>
       </div>
+
+      {activeCall && code && (
+        <CallModal
+          code={code}
+          sessionToken={activeCall.sessionToken}
+          iceServers={activeCall.iceServers}
+          onClose={() => setActiveCall(null)}
+        />
+      )}
     </div>
   );
 };

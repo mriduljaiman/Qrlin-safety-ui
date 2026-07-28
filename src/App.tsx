@@ -27,6 +27,8 @@ import Register from './components/Auth/Register';
 import VerifyEmail from './pages/VerifyEmail';
 import NotFound from './pages/NotFound';
 import ScanNotificationPopup from './components/ScanNotificationPopup';
+import IncomingCallModal from './components/IncomingCallModal';
+import SosAlertPopup from './components/SosAlertPopup';
 import { useAuth } from './hooks/useAuth';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -48,6 +50,8 @@ function App() {
         <ThemeProvider>
           <WebSocketProvider>
             <ScanNotificationPopup />
+            <IncomingCallModal />
+            <SosAlertPopup />
             <Routes>
               <Route path="/" element={
                 <Suspense fallback={<Loading fullScreen />}>

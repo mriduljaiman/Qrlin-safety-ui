@@ -1,0 +1,157 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
+import { IceServer } from '../types/tag';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
+export type CallState = 'idle' | 'connecting' | 'connected' | 'ended' | 'failed';
+
+interface SignalPayload {
+  senderId: string;
+  kind: 'ready' | 'offer' | 'answer' | 'ice-candidate' | 'hangup';
+  data?: unknown;
+}
+
+/**
+ * Owns one WebRTC call session end-to-end: a dedicated anonymous STOMP connection scoped to
+ * this call (separate from the authenticated WebSocketContext, so the finder side - never
+ * authenticated - can use it too), signaling over /app/call/{sessionToken}/signal <->
+ * /topic/call/{sessionToken}, and the RTCPeerConnection itself. Free, no telephony vendor -
+ * media is peer-to-peer (or STUN-assisted), the backend only relays SDP/ICE.
+ */
+export const useCallSignaling = (
+  sessionToken: string | null,
+  iceServers: IceServer[],
+  role: 'caller' | 'callee'
+) => {
+  const [state, setState] = useState<CallState>('idle');
+  const [durationSeconds, setDurationSeconds] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const stompRef = useRef<Client | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const senderIdRef = useRef(Math.random().toString(36).slice(2));
+  const connectedAtRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const offerSentRef = useRef(false);
+
+  const send = useCallback(
+    (payload: Omit<SignalPayload, 'senderId'>) => {
+      if (!sessionToken || !stompRef.current?.connected) return;
+      stompRef.current.publish({
+        destination: `/app/call/${sessionToken}/signal`,
+        body: JSON.stringify({ senderId: senderIdRef.current, ...payload }),
+      });
+    },
+    [sessionToken]
+  );
+
+  const ensurePeerConnection = useCallback(async () => {
+    if (pcRef.current) return pcRef.current;
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    localStreamRef.current = stream;
+
+    const pc = new RTCPeerConnection({
+      iceServers: iceServers.map((s) => ({ urls: s.urls })),
+    });
+    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate) send({ kind: 'ice-candidate', data: e.candidate.toJSON() });
+    };
+
+    pc.ontrack = (e) => {
+      if (audioRef.current) {
+        audioRef.current.srcObject = e.streams[0];
+        audioRef.current.play().catch(() => {});
+      }
+    };
+
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'connected') {
+        connectedAtRef.current = Date.now();
+        setState('connected');
+        timerRef.current = setInterval(() => {
+          setDurationSeconds(Math.floor((Date.now() - (connectedAtRef.current || Date.now())) / 1000));
+        }, 1000);
+      } else if (pc.connectionState === 'failed') {
+        setState('failed');
+      } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'closed') {
+        setState((prev) => (prev === 'connected' ? 'ended' : prev));
+      }
+    };
+
+    pcRef.current = pc;
+    return pc;
+  }, [iceServers, send]);
+
+  const join = useCallback(() => {
+    if (!sessionToken || stompRef.current) return;
+    setState('connecting');
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${API_URL}/ws`),
+      reconnectDelay: 3000,
+      onConnect: () => {
+        client.subscribe(`/topic/call/${sessionToken}`, async (message) => {
+          const payload: SignalPayload = JSON.parse(message.body);
+          if (payload.senderId === senderIdRef.current) return;
+
+          if (payload.kind === 'ready' && role === 'caller' && !offerSentRef.current) {
+            offerSentRef.current = true;
+            const pc = await ensurePeerConnection();
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            send({ kind: 'offer', data: offer });
+          } else if (payload.kind === 'offer' && role === 'callee') {
+            const pc = await ensurePeerConnection();
+            await pc.setRemoteDescription(payload.data as RTCSessionDescriptionInit);
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            send({ kind: 'answer', data: answer });
+          } else if (payload.kind === 'answer' && role === 'caller') {
+            await pcRef.current?.setRemoteDescription(payload.data as RTCSessionDescriptionInit);
+          } else if (payload.kind === 'ice-candidate') {
+            try {
+              await pcRef.current?.addIceCandidate(payload.data as RTCIceCandidateInit);
+            } catch {
+              // Candidate can arrive before remote description is set in rare races - safe to drop.
+            }
+          } else if (payload.kind === 'hangup') {
+            setState('ended');
+          }
+        });
+
+        send({ kind: 'ready' });
+      },
+    });
+
+    client.activate();
+    stompRef.current = client;
+  }, [sessionToken, role, ensurePeerConnection, send]);
+
+  const hangup = useCallback(() => {
+    send({ kind: 'hangup' });
+    if (timerRef.current) clearInterval(timerRef.current);
+    pcRef.current?.close();
+    pcRef.current = null;
+    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    localStreamRef.current = null;
+    stompRef.current?.deactivate();
+    stompRef.current = null;
+    setState('ended');
+  }, [send]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      pcRef.current?.close();
+      localStreamRef.current?.getTracks().forEach((t) => t.stop());
+      stompRef.current?.deactivate();
+    };
+  }, []);
+
+  return { state, durationSeconds, audioRef, join, hangup };
+};

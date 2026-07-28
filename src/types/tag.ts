@@ -64,7 +64,10 @@ export interface PublicTag {
 export interface ChatMessage {
   id: number;
   senderRole: 'OWNER' | 'FINDER';
-  body: string;
+  messageType: 'TEXT' | 'VOICE_NOTE';
+  body: string | null;
+  audioUrl: string | null;
+  audioDurationSeconds: number | null;
   sentAt: string;
 }
 
@@ -74,4 +77,13 @@ export interface ChatThread {
   lastMessageAt: string;
   messages: ChatMessage[];
   sessionToken?: string;
+}
+
+export interface IceServer {
+  urls: string[];
+}
+
+export interface CallInitiateResponse {
+  sessionToken: string;
+  iceServers: IceServer[];
 }
