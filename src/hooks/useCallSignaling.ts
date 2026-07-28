@@ -18,7 +18,7 @@ interface SignalPayload {
  * this call (separate from the authenticated WebSocketContext, so the finder side - never
  * authenticated - can use it too), signaling over /app/call/{sessionToken}/signal <->
  * /topic/call/{sessionToken}, and the RTCPeerConnection itself. Free, no telephony vendor -
- * media is peer-to-peer (or STUN-assisted), the backend only relays SDP/ICE.
+ * media is peer-to-peer (or STUN/TURN-assisted), the backend only relays SDP/ICE.
  */
 export const useCallSignaling = (
   sessionToken: string | null,
@@ -48,6 +48,13 @@ export const useCallSignaling = (
     [sessionToken]
   );
 
+  // Builds the RTCPeerConnection and grabs the mic. Deliberately synchronous with the caller -
+  // don't defer this until a signaling message arrives async over the WebSocket, because by
+  // then the original button-click's "user activation" has expired on several mobile browsers,
+  // which then silently reject getUserMedia - the call would hang on "Connecting..." forever
+  // with no visible error. Calling this eagerly, right when join() is invoked from the
+  // Call/Answer button handler, keeps it tied to the user gesture and removes a network
+  // round-trip from the connection setup critical path.
   const ensurePeerConnection = useCallback(async () => {
     if (pcRef.current) return pcRef.current;
 
@@ -88,44 +95,66 @@ export const useCallSignaling = (
     return pc;
   }, [iceServers, send]);
 
-  const join = useCallback(() => {
+  const join = useCallback(async () => {
     if (!sessionToken || stompRef.current) return;
     setState('connecting');
+
+    try {
+      await ensurePeerConnection();
+    } catch (err) {
+      console.error('Could not access microphone', err);
+      setState('failed');
+      return;
+    }
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_URL}/ws`),
       reconnectDelay: 3000,
       onConnect: () => {
         client.subscribe(`/topic/call/${sessionToken}`, async (message) => {
-          const payload: SignalPayload = JSON.parse(message.body);
-          if (payload.senderId === senderIdRef.current) return;
+          try {
+            const payload: SignalPayload = JSON.parse(message.body);
+            if (payload.senderId === senderIdRef.current) return;
 
-          if (payload.kind === 'ready' && role === 'caller' && !offerSentRef.current) {
-            offerSentRef.current = true;
-            const pc = await ensurePeerConnection();
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            send({ kind: 'offer', data: offer });
-          } else if (payload.kind === 'offer' && role === 'callee') {
-            const pc = await ensurePeerConnection();
-            await pc.setRemoteDescription(payload.data as RTCSessionDescriptionInit);
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-            send({ kind: 'answer', data: answer });
-          } else if (payload.kind === 'answer' && role === 'caller') {
-            await pcRef.current?.setRemoteDescription(payload.data as RTCSessionDescriptionInit);
-          } else if (payload.kind === 'ice-candidate') {
-            try {
-              await pcRef.current?.addIceCandidate(payload.data as RTCIceCandidateInit);
-            } catch {
-              // Candidate can arrive before remote description is set in rare races - safe to drop.
+            const pc = pcRef.current;
+            if (!pc) return;
+
+            if (payload.kind === 'ready' && role === 'caller' && !offerSentRef.current) {
+              offerSentRef.current = true;
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              send({ kind: 'offer', data: offer });
+            } else if (payload.kind === 'offer' && role === 'callee') {
+              await pc.setRemoteDescription(payload.data as RTCSessionDescriptionInit);
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
+              send({ kind: 'answer', data: answer });
+            } else if (payload.kind === 'answer' && role === 'caller') {
+              await pc.setRemoteDescription(payload.data as RTCSessionDescriptionInit);
+            } else if (payload.kind === 'ice-candidate') {
+              try {
+                await pc.addIceCandidate(payload.data as RTCIceCandidateInit);
+              } catch {
+                // Candidate can arrive before remote description is set in rare races - safe to drop.
+              }
+            } else if (payload.kind === 'hangup') {
+              setState('ended');
             }
-          } else if (payload.kind === 'hangup') {
-            setState('ended');
+          } catch (err) {
+            console.error('Call signaling error', err);
+            setState('failed');
           }
         });
 
         send({ kind: 'ready' });
+      },
+      onStompError: (frame) => {
+        console.error('STOMP error during call signaling', frame.headers, frame.body);
+        setState('failed');
+      },
+      onWebSocketError: (err) => {
+        console.error('WebSocket error during call signaling', err);
+        setState('failed');
       },
     });
 

@@ -200,37 +200,21 @@ const PublicScan: React.FC = () => {
           )}
 
           {!chatOpen ? (
-            <button
-              onClick={openChat}
-              style={{
-                marginTop: 12, padding: '10px 20px', background: 'var(--primary)', color: 'white',
-                border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600,
-              }}
-            >
+            <button onClick={openChat} className={styles.actionButton}>
               💬 Message Owner (free, anonymous)
             </button>
           ) : (
-            <div style={{ marginTop: 16, textAlign: 'left' }}>
-              <div
-                style={{
-                  background: '#f7fafc', borderRadius: 8, padding: 10, maxHeight: 200,
-                  overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6,
-                }}
-              >
+            <div className={styles.chatPanel}>
+              <div className={styles.chatBox}>
                 {messages.length === 0 && (
-                  <p style={{ fontSize: 13, color: '#a0aec0', margin: 0 }}>
+                  <p className={styles.chatHint}>
                     Send a message — the owner will be notified right away. Your identity is never shared.
                   </p>
                 )}
                 {messages.map((m) => (
                   <div
                     key={m.id}
-                    style={{
-                      alignSelf: m.senderRole === 'FINDER' ? 'flex-end' : 'flex-start',
-                      background: m.senderRole === 'FINDER' ? 'var(--primary)' : 'white',
-                      color: m.senderRole === 'FINDER' ? 'white' : '#1a202c',
-                      padding: '8px 12px', borderRadius: 12, maxWidth: '85%', fontSize: 14,
-                    }}
+                    className={`${styles.messageBubble} ${m.senderRole === 'FINDER' ? styles.messageBubbleFinder : styles.messageBubbleOwner}`}
                   >
                     {m.messageType === 'VOICE_NOTE' && m.audioUrl ? (
                       <VoiceMessageBubble audioUrl={m.audioUrl} durationSeconds={m.audioDurationSeconds} />
@@ -240,18 +224,18 @@ const PublicScan: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <form onSubmit={handleSendChat} style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+              <form onSubmit={handleSendChat} className={styles.chatForm}>
                 <input
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Type a message..."
-                  style={{ flex: 1, padding: '10px 12px', border: '2px solid #e2e8f0', borderRadius: 8 }}
+                  className={styles.chatInput}
                 />
                 <VoiceRecorderButton onSend={handleSendVoiceNote} />
                 <button
                   type="submit"
                   disabled={sendingChat || !chatInput.trim()}
-                  style={{ padding: '10px 16px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}
+                  className={styles.chatSendButton}
                 >
                   Send
                 </button>
@@ -259,15 +243,8 @@ const PublicScan: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
-            <button
-              onClick={handleStartCall}
-              disabled={callStarting}
-              style={{
-                padding: '10px 20px', background: '#38a169', color: 'white',
-                border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, width: '100%',
-              }}
-            >
+          <div className={styles.actionsColumn}>
+            <button onClick={handleStartCall} disabled={callStarting} className={styles.callButton}>
               📞 {callStarting ? 'Calling...' : 'Call Owner (free)'}
             </button>
             {code && <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />}

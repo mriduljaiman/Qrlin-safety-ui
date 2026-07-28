@@ -3,18 +3,25 @@ import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import ScanLocationMap from '../components/ScanLocationMap';
 import { scansAPI } from '../api/scans';
+import { profileAPI } from '../api/profile';
 import { LastScan as LastScanType } from '../types/scan';
+import { getTimezoneForCountry } from '../utils/countryTimezones';
 import styles from './Tags.module.css';
 
 const LastScanPage: React.FC = () => {
   const [scans, setScans] = useState<LastScanType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [countryTz, setCountryTz] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     (async () => {
       try {
-        const data = await scansAPI.getLastScans();
+        const [data, profile] = await Promise.all([
+          scansAPI.getLastScans(),
+          profileAPI.getMe().catch(() => null),
+        ]);
         setScans(data);
+        if (profile) setCountryTz(getTimezoneForCountry(profile.country));
       } catch (err) {
         console.error('Failed to load last scans', err);
       } finally {
@@ -62,7 +69,7 @@ const LastScanPage: React.FC = () => {
                     <span className={styles.categoryBadge} style={{ marginBottom: 0 }}>{scan.category}</span>
                   </div>
                   <div style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--gray-500)' }}>
-                    {new Date(scan.scannedAt).toLocaleString()}
+                    {new Date(scan.scannedAt).toLocaleString(undefined, countryTz ? { timeZone: countryTz } : undefined)}
                   </div>
                 </div>
 

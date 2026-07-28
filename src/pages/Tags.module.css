@@ -284,10 +284,67 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 16px;
   background: var(--gray-50);
   border-radius: 8px;
   margin-bottom: 16px;
+}
+
+.customFieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .customFieldRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.phoneRow {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 380px) {
+  .phoneRow {
+    grid-template-columns: 110px 1fr;
+  }
+}
+
+.chatGrid {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+  .chatGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.threadList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (max-width: 560px) {
+  .threadList {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .threadList button {
+    flex-shrink: 0;
+  }
 }
 
 .dangerText {

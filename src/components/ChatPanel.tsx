@@ -76,8 +76,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
       {threads.length === 0 ? (
         <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>No messages yet.</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 16, marginTop: 16 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className={styles.chatGrid}>
+          <div className={styles.threadList}>
             {threads.map((t) => (
               <button
                 key={t.id}

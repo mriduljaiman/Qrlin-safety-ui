@@ -96,8 +96,8 @@ const Messages: React.FC = () => {
           </div>
         ) : (
           <div className={styles.detailCard}>
-            <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 480, overflowY: 'auto' }}>
+            <div className={styles.chatGrid}>
+              <div className={styles.threadList} style={{ maxHeight: 480, overflowY: 'auto' }}>
                 {items.map((item) => {
                   const key = `${item.tagId}-${item.thread.id}`;
                   const isActive = activeItem && key === `${activeItem.tagId}-${activeItem.thread.id}`;

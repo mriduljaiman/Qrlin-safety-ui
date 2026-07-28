@@ -245,7 +245,7 @@ const Profile: React.FC = () => {
 
           <div className={styles.formGroup}>
             <label>Phone</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8 }}>
+            <div className={styles.phoneRow}>
               <SearchableSelect
                 value={profile.phoneCountryCode || '+91'}
                 onChange={(v) => handleChange('phoneCountryCode', v)}
@@ -263,7 +263,7 @@ const Profile: React.FC = () => {
 
           <div className={styles.formGroup}>
             <label>WhatsApp number (optional)</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8 }}>
+            <div className={styles.phoneRow}>
               <SearchableSelect
                 value={profile.whatsappCountryCode || '+91'}
                 onChange={(v) => handleChange('whatsappCountryCode', v)}

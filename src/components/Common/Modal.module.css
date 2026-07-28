@@ -62,3 +62,15 @@
   .content {
     color: var(--gray-600);
   }
+
+  @media (max-width: 480px) {
+    .modal {
+      width: 94%;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .title {
+      font-size: 19px;
+    }
+  }

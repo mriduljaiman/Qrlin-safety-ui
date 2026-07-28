@@ -39,6 +39,8 @@ const TagDetail: React.FC = () => {
   const [savingSafety, setSavingSafety] = useState(false);
   const [error, setError] = useState('');
   const [safetyError, setSafetyError] = useState('');
+  const [safetySuccess, setSafetySuccess] = useState('');
+  const safetyCardRef = useRef<HTMLDivElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -176,9 +178,11 @@ const TagDetail: React.FC = () => {
     e.preventDefault();
     if (!tag) return;
     setSafetyError('');
+    setSafetySuccess('');
 
     if (!safetyInfo.showContactPhone && !safetyInfo.showAddress) {
       setSafetyError('Enable at least one of Contact Phone or Address so a finder can reach you.');
+      safetyCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
@@ -187,8 +191,11 @@ const TagDetail: React.FC = () => {
       const saved = await tagsAPI.upsertSafetyInfo(tag.id, safetyInfo);
       setSafetyInfo({ ...saved, customFields: saved.customFields || [] });
       setTag({ ...tag, hasSafetyInfo: true });
+      setSafetySuccess('Safety info saved');
+      setTimeout(() => setSafetySuccess(''), 4000);
     } catch (err: any) {
       setSafetyError(err.response?.data?.error || 'Could not save safety info');
+      safetyCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } finally {
       setSavingSafety(false);
     }
@@ -316,7 +323,7 @@ const TagDetail: React.FC = () => {
             </button>
           </div>
 
-          <div className={styles.detailCard}>
+          <div className={styles.detailCard} ref={safetyCardRef}>
             <h2 style={{ marginTop: 0 }}>Safety Info</h2>
             <p style={{ color: 'var(--gray-500)', fontSize: 14 }}>
               Shown on the public scan page for this tag only. Contact details start filled in from your
@@ -324,8 +331,13 @@ const TagDetail: React.FC = () => {
             </p>
 
             {safetyError && (
-              <div style={{ background: '#fee', color: '#c33', padding: 12, borderRadius: 8, marginBottom: 16 }}>
-                {safetyError}
+              <div style={{ background: '#fee', color: '#c33', padding: 12, borderRadius: 8, marginBottom: 16, fontWeight: 600 }}>
+                ⚠️ {safetyError}
+              </div>
+            )}
+            {safetySuccess && (
+              <div style={{ background: '#efe', color: '#2a2', padding: 12, borderRadius: 8, marginBottom: 16, fontWeight: 600 }}>
+                ✓ {safetySuccess}
               </div>
             )}
 
@@ -445,7 +457,7 @@ const TagDetail: React.FC = () => {
                   </div>
                 )}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8 }}>
+                <div className={styles.customFieldRow}>
                   <input
                     value={newFieldLabel}
                     onChange={(e) => setNewFieldLabel(e.target.value)}
@@ -480,6 +492,8 @@ const TagDetail: React.FC = () => {
                   </button>
                 )}
               </div>
+              {safetySuccess && <p style={{ textAlign: 'center', color: '#2a2', fontWeight: 600, marginTop: 12 }}>✓ {safetySuccess}</p>}
+              {safetyError && <p style={{ textAlign: 'center', color: '#c33', fontWeight: 600, marginTop: 12 }}>⚠️ {safetyError}</p>}
             </form>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { profileAPI } from '../api/profile';
 import { Preferences } from '../types/profile';
 import { playNotificationSound } from '../utils/notificationSounds';
+import { getTimezoneForCountry } from '../utils/countryTimezones';
 
 interface ScanEvent {
   type: string;
@@ -25,10 +26,12 @@ const ScanNotificationPopup: React.FC = () => {
   const navigate = useNavigate();
   const [event, setEvent] = useState<ScanEvent | null>(null);
   const [prefs, setPrefs] = useState<Preferences | null>(null);
+  const [countryTz, setCountryTz] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     profileAPI.getPreferences().then(setPrefs).catch(() => {});
+    profileAPI.getMe().then((p) => setCountryTz(getTimezoneForCountry(p.country))).catch(() => {});
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -47,7 +50,7 @@ const ScanNotificationPopup: React.FC = () => {
 
   if (!event) return null;
 
-  const scanTime = new Date(event.timestamp).toLocaleString();
+  const scanTime = new Date(event.timestamp).toLocaleString(undefined, countryTz ? { timeZone: countryTz } : undefined);
   const textStyle: React.CSSProperties = {
     fontSize: `${prefs?.notificationFontSize || '16'}px`,
     fontFamily: prefs?.notificationFontFamily || 'system-ui',

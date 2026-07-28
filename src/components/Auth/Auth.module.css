@@ -112,3 +112,17 @@
   .authFooter a:hover {
     text-decoration: underline;
   }
+
+  @media (max-width: 480px) {
+    .authContainer {
+      padding: 12px;
+    }
+
+    .authCard {
+      padding: 24px 20px;
+    }
+
+    .authTitle {
+      font-size: 22px;
+    }
+  }
