@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from './Common/Modal';
-import ScanLocationMap from './ScanLocationMap';
+const ScanLocationMap = lazy(() => import('./ScanLocationMap'));
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { profileAPI } from '../api/profile';
@@ -62,7 +62,9 @@ const ScanNotificationPopup: React.FC = () => {
         </p>
         <p style={{ margin: 0, fontSize: 14, color: 'var(--gray-500)' }}>{scanTime}</p>
 
-        <ScanLocationMap latitude={event.latitude} longitude={event.longitude} />
+        <Suspense fallback={<div style={{ fontSize: 13, color: 'var(--gray-400)' }}>Loading map...</div>}>
+          <ScanLocationMap latitude={event.latitude} longitude={event.longitude} />
+        </Suspense>
 
         {event.lostMode && (
           <div style={{ background: '#fed7d7', color: '#c53030', padding: 10, borderRadius: 8, fontSize: 13, fontWeight: 600 }}>

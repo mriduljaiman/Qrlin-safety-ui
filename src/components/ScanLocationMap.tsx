@@ -1,4 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIconUrl from 'leaflet/dist/images/marker-icon.png?url';
+import markerIcon2xUrl from 'leaflet/dist/images/marker-icon-2x.png?url';
+import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png?url';
+
+const markerIcon = L.icon({
+  iconUrl: markerIconUrl,
+  iconRetinaUrl: markerIcon2xUrl,
+  shadowUrl: markerShadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 interface ScanLocationMapProps {
   latitude?: string | null;
@@ -22,6 +37,9 @@ async function reverseGeocode(lat: string, lng: string): Promise<string | null> 
 const ScanLocationMap: React.FC<ScanLocationMapProps> = ({ latitude, longitude }) => {
   const [address, setAddress] = useState<string | null>(null);
   const [loadingAddress, setLoadingAddress] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     setAddress(null);
@@ -33,12 +51,42 @@ const ScanLocationMap: React.FC<ScanLocationMapProps> = ({ latitude, longitude }
     }
   }, [latitude, longitude]);
 
+  useEffect(() => {
+    if (!latitude || !longitude || latitude === 'null' || !mapContainerRef.current) return;
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+
+    if (!mapRef.current) {
+      const map = L.map(mapContainerRef.current, { attributionControl: false }).setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+      L.control.attribution({ prefix: false })
+        .addAttribution('© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>')
+        .addTo(map);
+      markerRef.current = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+      mapRef.current = map;
+    } else {
+      mapRef.current.setView([lat, lng], 15);
+      markerRef.current?.setLatLng([lat, lng]);
+    }
+
+    return () => {
+      mapRef.current?.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, [latitude, longitude]);
+
   return (
     <div style={{ background: 'var(--gray-50)', borderRadius: 8, padding: 12, fontSize: 14 }}>
       <strong>Scanner's location</strong>
       <div style={{ marginTop: 4 }}>
         {loadingAddress && 'Looking up address...'}
-        {!loadingAddress && address && address}
+        {!loadingAddress && address && (
+          <span>
+            {address}
+            <span style={{ color: 'var(--gray-400)', fontSize: 12 }}> (approximate)</span>
+          </span>
+        )}
         {!loadingAddress && !address && latitude && (
           <span>Approx. {latitude}, {longitude}</span>
         )}
@@ -47,16 +95,10 @@ const ScanLocationMap: React.FC<ScanLocationMapProps> = ({ latitude, longitude }
 
       {latitude && longitude && (
         <div style={{ marginTop: 10 }}>
-          <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--gray-200)' }}>
-            <iframe
-              title="Scanner's exact location"
-              width="100%"
-              height="180"
-              style={{ border: 0, display: 'block' }}
-              loading="lazy"
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(longitude) - 0.006}%2C${Number(latitude) - 0.004}%2C${Number(longitude) + 0.006}%2C${Number(latitude) + 0.004}&layer=mapnik&marker=${latitude}%2C${longitude}`}
-            />
-          </div>
+          <div
+            ref={mapContainerRef}
+            style={{ height: 180, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--gray-200)' }}
+          />
           <a
             href={`https://www.google.com/maps?q=${latitude},${longitude}`}
             target="_blank"
