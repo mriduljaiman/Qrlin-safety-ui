@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from './Common/Modal';
+import ScanLocationMap from './ScanLocationMap';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { profileAPI } from '../api/profile';
@@ -18,27 +19,11 @@ interface ScanEvent {
   lostMode?: boolean;
 }
 
-async function reverseGeocode(lat: string, lng: string): Promise<string | null> {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-      { headers: { Accept: 'application/json' } }
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.display_name || null;
-  } catch {
-    return null;
-  }
-}
-
 const ScanNotificationPopup: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { subscribeToScans, connected } = useWebSocket();
   const navigate = useNavigate();
   const [event, setEvent] = useState<ScanEvent | null>(null);
-  const [address, setAddress] = useState<string | null>(null);
-  const [loadingAddress, setLoadingAddress] = useState(false);
   const [prefs, setPrefs] = useState<Preferences | null>(null);
 
   useEffect(() => {
@@ -51,17 +36,9 @@ const ScanNotificationPopup: React.FC = () => {
 
     const unsubscribe = subscribeToScans(user.id, (message: ScanEvent) => {
       setEvent(message);
-      setAddress(null);
 
       if (!prefs?.notificationMuted) {
         playNotificationSound(prefs?.notificationSound || 'chime');
-      }
-
-      if (message.latitude && message.longitude && message.latitude !== 'null') {
-        setLoadingAddress(true);
-        reverseGeocode(message.latitude, message.longitude)
-          .then((a) => setAddress(a))
-          .finally(() => setLoadingAddress(false));
       }
     });
 
@@ -85,40 +62,7 @@ const ScanNotificationPopup: React.FC = () => {
         </p>
         <p style={{ margin: 0, fontSize: 14, color: 'var(--gray-500)' }}>{scanTime}</p>
 
-        <div style={{ background: 'var(--gray-50)', borderRadius: 8, padding: 12, fontSize: 14 }}>
-          <strong>Scanner's location</strong>
-          <div style={{ marginTop: 4 }}>
-            {loadingAddress && 'Looking up address...'}
-            {!loadingAddress && address && address}
-            {!loadingAddress && !address && event.latitude && (
-              <span>Approx. {event.latitude}, {event.longitude}</span>
-            )}
-            {!loadingAddress && !address && !event.latitude && 'Location not shared by the finder\'s browser.'}
-          </div>
-
-          {event.latitude && event.longitude && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--gray-200)' }}>
-                <iframe
-                  title="Scanner's exact location"
-                  width="100%"
-                  height="180"
-                  style={{ border: 0, display: 'block' }}
-                  loading="lazy"
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(event.longitude) - 0.006}%2C${Number(event.latitude) - 0.004}%2C${Number(event.longitude) + 0.006}%2C${Number(event.latitude) + 0.004}&layer=mapnik&marker=${event.latitude}%2C${event.longitude}`}
-                />
-              </div>
-              <a
-                href={`https://www.google.com/maps?q=${event.latitude},${event.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ fontSize: 12, color: 'var(--primary)', display: 'inline-block', marginTop: 6 }}
-              >
-                Open exact pin in Google Maps ↗
-              </a>
-            </div>
-          )}
-        </div>
+        <ScanLocationMap latitude={event.latitude} longitude={event.longitude} />
 
         {event.lostMode && (
           <div style={{ background: '#fed7d7', color: '#c53030', padding: 10, borderRadius: 8, fontSize: 13, fontWeight: 600 }}>

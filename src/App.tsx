@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard';
 // Home pulls in Three.js for the 3D hero scene - lazy-loaded so that weight
 // only hits visitors landing on "/", not the rest of the app (login, dashboard, etc).
 const Home = lazy(() => import('./pages/Home'));
+const LastScan = lazy(() => import('./pages/LastScan'));
+const Messages = lazy(() => import('./pages/Messages'));
 import AddTag from './pages/AddTag';
 import TagDetail from './pages/TagDetail';
 import PublicScan from './pages/PublicScan';
@@ -28,12 +30,14 @@ import ScanNotificationPopup from './components/ScanNotificationPopup';
 import { useAuth } from './hooks/useAuth';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, initializing } = useAuth();
+  if (initializing) return <Loading fullScreen />;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, initializing } = useAuth();
+  if (initializing) return <Loading fullScreen />;
   return isAuthenticated && user?.role === 'ADMIN' ? <>{children}</> : <Navigate to="/dashboard" />;
 }
 
@@ -81,6 +85,22 @@ function App() {
               <Route path="/profile" element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              } />
+
+              <Route path="/last-scan" element={
+                <PrivateRoute>
+                  <Suspense fallback={<Loading fullScreen />}>
+                    <LastScan />
+                  </Suspense>
+                </PrivateRoute>
+              } />
+
+              <Route path="/messages" element={
+                <PrivateRoute>
+                  <Suspense fallback={<Loading fullScreen />}>
+                    <Messages />
+                  </Suspense>
                 </PrivateRoute>
               } />
 

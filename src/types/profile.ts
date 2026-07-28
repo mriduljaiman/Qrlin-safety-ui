@@ -4,7 +4,9 @@ export interface UserProfile {
   fullName: string;
   photoUrl: string | null;
   phone: string | null;
+  phoneCountryCode: string | null;
   whatsappNumber: string | null;
+  whatsappCountryCode: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
   country: string | null;
@@ -17,7 +19,9 @@ export interface ProfileUpdateRequest {
   fullName?: string;
   photoUrl?: string;
   phone?: string;
+  phoneCountryCode?: string;
   whatsappNumber?: string;
+  whatsappCountryCode?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   country?: string;

@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { profileAPI } from '../api/profile';
 import { uploadsAPI } from '../api/uploads';
 import { compressImageToTarget } from '../utils/imageCompression';
+import { loadCountries, loadPhoneCodes, loadStates, loadCities, CountryOption } from '../utils/geoData';
+import { SearchableSelectOption } from '../components/Common/SearchableSelect';
+import SearchableSelect from '../components/Common/SearchableSelect';
 import { UserProfile } from '../types/profile';
 import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import styles from './Tags.module.css';
-
-const COUNTRIES = ['India', 'United States', 'United Kingdom', 'United Arab Emirates', 'Canada', 'Australia', 'Singapore', 'Other'];
 
 const emptyProfile: UserProfile = {
   id: 0,
@@ -15,7 +16,9 @@ const emptyProfile: UserProfile = {
   fullName: '',
   photoUrl: '',
   phone: '',
+  phoneCountryCode: '+91',
   whatsappNumber: '',
+  whatsappCountryCode: '+91',
   emergencyContactName: '',
   emergencyContactPhone: '',
   country: 'India',
@@ -33,21 +36,92 @@ const Profile: React.FC = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [geoLoading, setGeoLoading] = useState(true);
+  const [countries, setCountries] = useState<CountryOption[]>([]);
+  const [phoneCodes, setPhoneCodes] = useState<SearchableSelectOption[]>([]);
+  const [states, setStates] = useState<SearchableSelectOption[]>([]);
+  const [cities, setCities] = useState<SearchableSelectOption[]>([]);
+  const [countryIso, setCountryIso] = useState('IN');
+  const [stateIso, setStateIso] = useState('');
+
   useEffect(() => {
     (async () => {
       try {
-        const data = await profileAPI.getMe();
-        setProfile({ ...emptyProfile, ...data, country: data.country || 'India' });
+        const [data, countryList, codeList] = await Promise.all([
+          profileAPI.getMe(),
+          loadCountries(),
+          loadPhoneCodes(),
+        ]);
+        setCountries(countryList);
+        setPhoneCodes(codeList);
+
+        const merged: UserProfile = {
+          ...emptyProfile,
+          ...data,
+          country: data.country || 'India',
+          phoneCountryCode: data.phoneCountryCode || '+91',
+          whatsappCountryCode: data.whatsappCountryCode || '+91',
+        };
+        setProfile(merged);
+
+        const matchedCountry =
+          countryList.find((c) => c.label.toLowerCase().includes(merged.country!.toLowerCase())) ||
+          countryList.find((c) => c.value === 'IN');
+        if (matchedCountry) {
+          setCountryIso(matchedCountry.value);
+          const stateList = await loadStates(matchedCountry.value);
+          setStates(stateList);
+          const matchedState = merged.state
+            ? stateList.find((s) => s.label.toLowerCase() === merged.state!.toLowerCase())
+            : null;
+          if (matchedState) {
+            setStateIso(matchedState.value);
+            const cityList = await loadCities(matchedCountry.value, matchedState.value);
+            setCities(cityList);
+          }
+        }
       } catch (err) {
         console.error('Failed to load profile', err);
       } finally {
         setLoading(false);
+        setGeoLoading(false);
       }
     })();
   }, []);
 
   const handleChange = (field: keyof UserProfile, value: string) => {
     setProfile({ ...profile, [field]: value });
+  };
+
+  const handleCountryChange = async (iso: string) => {
+    const country = countries.find((c) => c.value === iso);
+    if (!country) return;
+    setCountryIso(iso);
+    setStateIso('');
+    setCities([]);
+    setProfile((prev) => ({
+      ...prev,
+      country: country.label.replace(/^\S+\s/, ''),
+      state: '',
+      city: '',
+      phoneCountryCode: country.phoneCode,
+      whatsappCountryCode: country.phoneCode,
+    }));
+    const stateList = await loadStates(iso);
+    setStates(stateList);
+  };
+
+  const handleStateChange = async (iso: string) => {
+    const state = states.find((s) => s.value === iso);
+    if (!state) return;
+    setStateIso(iso);
+    setProfile((prev) => ({ ...prev, state: state.label, city: '' }));
+    const cityList = await loadCities(countryIso, iso);
+    setCities(cityList);
+  };
+
+  const handleCityChange = (name: string) => {
+    setProfile((prev) => ({ ...prev, city: name }));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -60,7 +134,9 @@ const Profile: React.FC = () => {
         fullName: profile.fullName,
         photoUrl: profile.photoUrl || undefined,
         phone: profile.phone || undefined,
+        phoneCountryCode: profile.phoneCountryCode || undefined,
         whatsappNumber: profile.whatsappNumber || undefined,
+        whatsappCountryCode: profile.whatsappCountryCode || undefined,
         emergencyContactName: profile.emergencyContactName || undefined,
         emergencyContactPhone: profile.emergencyContactPhone || undefined,
         country: profile.country || undefined,
@@ -68,7 +144,7 @@ const Profile: React.FC = () => {
         city: profile.city || undefined,
         pincode: profile.pincode || undefined,
       });
-      setProfile({ ...emptyProfile, ...updated });
+      setProfile((prev) => ({ ...prev, ...updated }));
       setSuccess('Profile updated');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
@@ -153,7 +229,6 @@ const Profile: React.FC = () => {
               onChange={handlePhotoSelect}
               style={{ display: 'none' }}
             />
-            <span className={styles.hint}>Click the photo to upload — automatically compressed to ~20KB</span>
           </div>
 
           <div className={styles.formGroup}>
@@ -168,12 +243,38 @@ const Profile: React.FC = () => {
 
           <div className={styles.formGroup}>
             <label>Phone</label>
-            <input value={profile.phone || ''} onChange={(e) => handleChange('phone', e.target.value)} placeholder="+91..." />
+            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8 }}>
+              <SearchableSelect
+                value={profile.phoneCountryCode || '+91'}
+                onChange={(v) => handleChange('phoneCountryCode', v)}
+                options={phoneCodes}
+                disabled={geoLoading}
+                placeholder="+91"
+              />
+              <input
+                value={profile.phone || ''}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                placeholder="9876543210"
+              />
+            </div>
           </div>
 
           <div className={styles.formGroup}>
             <label>WhatsApp number (optional)</label>
-            <input value={profile.whatsappNumber || ''} onChange={(e) => handleChange('whatsappNumber', e.target.value)} placeholder="+91..." />
+            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 8 }}>
+              <SearchableSelect
+                value={profile.whatsappCountryCode || '+91'}
+                onChange={(v) => handleChange('whatsappCountryCode', v)}
+                options={phoneCodes}
+                disabled={geoLoading}
+                placeholder="+91"
+              />
+              <input
+                value={profile.whatsappNumber || ''}
+                onChange={(e) => handleChange('whatsappNumber', e.target.value)}
+                placeholder="9876543210"
+              />
+            </div>
           </div>
 
           <div className={styles.formGroup}>
@@ -188,25 +289,35 @@ const Profile: React.FC = () => {
 
           <div className={styles.formGroup}>
             <label>Country</label>
-            <select
-              value={profile.country || 'India'}
-              onChange={(e) => handleChange('country', e.target.value)}
-              style={{ padding: '12px 16px', border: '2px solid var(--gray-200)', borderRadius: 8, fontSize: 14, background: 'var(--surface)', color: 'var(--gray-800)' }}
-            >
-              {COUNTRIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <SearchableSelect
+              value={countryIso}
+              onChange={handleCountryChange}
+              options={countries}
+              disabled={geoLoading}
+              placeholder="Search country..."
+            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div className={styles.formGroup}>
               <label>State</label>
-              <input value={profile.state || ''} onChange={(e) => handleChange('state', e.target.value)} />
+              <SearchableSelect
+                value={stateIso}
+                onChange={handleStateChange}
+                options={states}
+                disabled={geoLoading || states.length === 0}
+                placeholder="Search state..."
+              />
             </div>
             <div className={styles.formGroup}>
               <label>City</label>
-              <input value={profile.city || ''} onChange={(e) => handleChange('city', e.target.value)} />
+              <SearchableSelect
+                value={profile.city || ''}
+                onChange={handleCityChange}
+                options={cities}
+                disabled={geoLoading || cities.length === 0}
+                placeholder="Search city..."
+              />
             </div>
           </div>
 
