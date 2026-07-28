@@ -5,6 +5,8 @@
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    background-image: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%), var(--bg-pattern, none);
+    background-repeat: no-repeat, repeat;
     color: white;
     text-align: center;
     padding: 20px;

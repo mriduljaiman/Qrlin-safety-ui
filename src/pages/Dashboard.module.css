@@ -1,6 +1,8 @@
 .dashboardContainer {
     min-height: 100vh;
     background: #f7fafc;
+    background-image: var(--bg-pattern, none);
+    background-repeat: repeat;
   }
   
   .dashboardContent {

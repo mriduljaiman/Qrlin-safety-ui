@@ -1,6 +1,8 @@
 .container {
   min-height: 100vh;
   background: var(--gray-50);
+  background-image: var(--bg-pattern, none);
+  background-repeat: repeat;
 }
 
 .notification {
