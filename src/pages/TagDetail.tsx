@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import QRCode from 'qrcode';
 import { tagsAPI } from '../api/tags';
 import { profileAPI } from '../api/profile';
 import { uploadsAPI } from '../api/uploads';
@@ -9,6 +8,7 @@ import { Tag, SafetyInfo } from '../types/tag';
 import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import ChatPanel from '../components/ChatPanel';
+import QrCustomizer from '../components/QrCustomizer';
 import styles from './Tags.module.css';
 
 const emptySafetyInfo: SafetyInfo = {
@@ -32,7 +32,6 @@ const TagDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tag, setTag] = useState<Tag | null>(null);
-  const [qrImage, setQrImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [safetyInfo, setSafetyInfo] = useState<SafetyInfo>(emptySafetyInfo);
   const [savingSafety, setSavingSafety] = useState(false);
@@ -65,10 +64,6 @@ const TagDetail: React.FC = () => {
             whatsappNumber: profile.whatsappNumber || '',
           });
         }
-
-        const scanUrl = `${window.location.origin}/scan/${tagData.qrCode}`;
-        const dataUrl = await QRCode.toDataURL(scanUrl, { width: 240, margin: 2 });
-        setQrImage(dataUrl);
       } catch (err) {
         console.error('Failed to load tag', err);
       } finally {
@@ -195,12 +190,7 @@ const TagDetail: React.FC = () => {
 
         <div className={styles.detailGrid}>
           <div className={styles.detailCard}>
-            <div className={styles.qrWrapper}>
-              {qrImage && <img src={qrImage} alt="QR code" />}
-              <p style={{ color: 'var(--gray-500)', fontSize: 13, textAlign: 'center' }}>
-                Print this and stick it on your item. Anyone who scans it sees only what you've chosen to share.
-              </p>
-            </div>
+            <QrCustomizer tag={tag} onSaved={(updated) => setTag(updated)} />
 
             <div
               onClick={() => !uploadingPhoto && fileInputRef.current?.click()}

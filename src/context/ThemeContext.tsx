@@ -10,6 +10,12 @@ export const THEMES = [
   { id: 'rose', label: 'Rose', primary: '#f43f5e', secondary: '#e11d48' },
   { id: 'midnight', label: 'Midnight', primary: '#818cf8', secondary: '#6366f1' },
   { id: 'candy', label: 'Candy', primary: '#a855f7', secondary: '#ec4899' },
+  { id: 'deadpool', label: 'Deadpool', primary: '#e8112d', secondary: '#2b2b2b' },
+  { id: 'spiderman', label: 'Spiderman', primary: '#ed1c24', secondary: '#0d47a1' },
+  { id: 'hulk', label: 'Hulk', primary: '#4caf50', secondary: '#7e3ff2' },
+  { id: 'jasmine', label: 'Jasmine', primary: '#f2c14e', secondary: '#7cb342' },
+  { id: 'cinderella', label: 'Cinderella', primary: '#7fb2e5', secondary: '#d4af37' },
+  { id: 'cars', label: 'Cars', primary: '#c8102e', secondary: '#7d8891' },
 ];
 
 interface ThemeContextType {

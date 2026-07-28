@@ -95,6 +95,29 @@ const ScanNotificationPopup: React.FC = () => {
             )}
             {!loadingAddress && !address && !event.latitude && 'Location not shared by the finder\'s browser.'}
           </div>
+
+          {event.latitude && event.longitude && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid var(--gray-200)' }}>
+                <iframe
+                  title="Scanner's exact location"
+                  width="100%"
+                  height="180"
+                  style={{ border: 0, display: 'block' }}
+                  loading="lazy"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${Number(event.longitude) - 0.006}%2C${Number(event.latitude) - 0.004}%2C${Number(event.longitude) + 0.006}%2C${Number(event.latitude) + 0.004}&layer=mapnik&marker=${event.latitude}%2C${event.longitude}`}
+                />
+              </div>
+              <a
+                href={`https://www.google.com/maps?q=${event.latitude},${event.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: 'var(--primary)', display: 'inline-block', marginTop: 6 }}
+              >
+                Open exact pin in Google Maps ↗
+              </a>
+            </div>
+          )}
         </div>
 
         {event.lostMode && (

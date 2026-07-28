@@ -5,6 +5,12 @@ export interface Tag {
   tagName: string;
   photoUrl: string | null;
   description: string | null;
+  qrColor: string;
+  qrBackgroundColor: string;
+  qrStyle: string;
+  qrTitleAbove: string;
+  qrTitleBelow: string;
+  qrCenterText: string;
   active: boolean;
   lostMode: boolean;
   hasSafetyInfo: boolean;
@@ -16,6 +22,12 @@ export interface TagRequest {
   tagName: string;
   photoUrl?: string;
   description?: string;
+  qrColor?: string;
+  qrBackgroundColor?: string;
+  qrStyle?: string;
+  qrTitleAbove?: string;
+  qrTitleBelow?: string;
+  qrCenterText?: string;
 }
 
 export interface SafetyInfo {
