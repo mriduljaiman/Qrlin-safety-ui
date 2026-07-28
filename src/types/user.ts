@@ -15,6 +15,7 @@ export interface User {
     password: string;
     fullName: string;
     phone: string;
+    referralCode?: string;
   }
 
   export interface OtpVerifyRequest {
@@ -24,6 +25,7 @@ export interface User {
 
   export interface GoogleAuthRequest {
     idToken: string;
+    referralCode?: string;
   }
 
   export interface AuthResponse {

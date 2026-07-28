@@ -42,6 +42,7 @@ export const useCallSignaling = (
       stompRef.current.publish({
         destination: `/app/call/${sessionToken}/signal`,
         body: JSON.stringify({ senderId: senderIdRef.current, ...payload }),
+        headers: { 'content-type': 'application/json' },
       });
     },
     [sessionToken]
@@ -54,7 +55,7 @@ export const useCallSignaling = (
     localStreamRef.current = stream;
 
     const pc = new RTCPeerConnection({
-      iceServers: iceServers.map((s) => ({ urls: s.urls })),
+      iceServers: iceServers.map((s) => ({ urls: s.urls, username: s.username, credential: s.credential })),
     });
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 

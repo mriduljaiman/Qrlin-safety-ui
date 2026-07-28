@@ -88,6 +88,8 @@ export interface ChatThread {
 
 export interface IceServer {
   urls: string[];
+  username?: string;
+  credential?: string;
 }
 
 export interface CallInitiateResponse {

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { authAPI } from '../../api/auth';
 import { useAuth } from '../../hooks/useAuth';
 import GoogleSignInButton from './GoogleSignInButton';
 import styles from './Auth.module.css';
 
 const Register: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
     phone: '',
+    referralCode: searchParams.get('ref') || '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ const Register: React.FC = () => {
   const handleGoogleToken = async (idToken: string) => {
     setError('');
     try {
-      const response = await authAPI.googleLogin({ idToken });
+      const response = await authAPI.googleLogin({ idToken, referralCode: formData.referralCode || undefined });
       login(response);
       navigate('/dashboard');
     } catch (err: any) {
@@ -71,7 +73,7 @@ const Register: React.FC = () => {
               value={formData.fullName}
               onChange={handleChange}
               required
-              placeholder="John Doe"
+              placeholder="Enter your name"
             />
           </div>
 
@@ -111,6 +113,19 @@ const Register: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="••••••••"
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="referralCode">Referral code (optional)</label>
+            <input
+              id="referralCode"
+              name="referralCode"
+              type="text"
+              value={formData.referralCode}
+              onChange={handleChange}
+              placeholder="7-digit code from a friend"
+              maxLength={7}
             />
           </div>
 

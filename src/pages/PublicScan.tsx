@@ -259,26 +259,21 @@ const PublicScan: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
             <button
               onClick={handleStartCall}
               disabled={callStarting}
               style={{
                 padding: '10px 20px', background: '#38a169', color: 'white',
-                border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600,
+                border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, width: '100%',
               }}
             >
               📞 {callStarting ? 'Calling...' : 'Call Owner (free)'}
             </button>
+            {code && <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />}
           </div>
         </div>
       </div>
-
-      {code && (
-        <div style={{ maxWidth: 420, margin: '16px auto 0' }}>
-          <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />
-        </div>
-      )}
 
       {activeCall && code && (
         <CallModal

@@ -5,20 +5,21 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { callAPI } from '../api/calls';
 import { useCallSignaling } from '../hooks/useCallSignaling';
 import { playNotificationSound } from '../utils/notificationSounds';
+import { IceServer } from '../types/tag';
 
 interface IncomingCallEvent {
   type: string;
   qrCode: string;
   tagName?: string;
   sessionToken: string;
+  iceServers: IceServer[];
 }
 
 const RING_TIMEOUT_MS = 30000;
 
-// Google's public STUN - free, no vendor. Matches the finder-side config from the backend;
-// hardcoded here too since the owner never calls POST /call and so never receives it.
-// Defined outside the component so the array reference is stable across renders.
-const DEFAULT_ICE_SERVERS = [{ urls: ['stun:stun.l.google.com:19302'] }];
+// Empty until the CALL_INCOMING push arrives - it carries the same STUN/TURN config the
+// backend handed the finder, so both sides always agree (no second hardcoded copy to drift).
+const EMPTY_ICE_SERVERS: IceServer[] = [];
 
 const IncomingCallModal: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -30,7 +31,7 @@ const IncomingCallModal: React.FC = () => {
 
   const { state, durationSeconds, audioRef, join, hangup } = useCallSignaling(
     accepted && call ? call.sessionToken : null,
-    DEFAULT_ICE_SERVERS,
+    call?.iceServers && call.iceServers.length > 0 ? call.iceServers : EMPTY_ICE_SERVERS,
     'callee'
   );
   const joinedForRef = useRef<string | null>(null);

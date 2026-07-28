@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { tagsAPI } from '../api/tags';
 import { profileAPI } from '../api/profile';
+import { referralAPI } from '../api/referral';
 import { Tag } from '../types/tag';
 import { Preferences } from '../types/profile';
+import { ReferralSummary } from '../types/referral';
 import { useTheme } from '../hooks/useTheme';
 import { THEMES } from '../context/ThemeContext';
 import { SOUND_OPTIONS, playNotificationSound } from '../utils/notificationSounds';
@@ -24,7 +26,7 @@ const FONT_FAMILY_OPTIONS = [
 ];
 const COLOR_OPTIONS = ['#667eea', '#0ea5e9', '#f97316', '#16a34a', '#f43f5e', '#a855f7', '#1a202c'];
 
-type Tab = 'tags' | 'notifications' | 'themes';
+type Tab = 'tags' | 'notifications' | 'themes' | 'referrals';
 
 const defaultPrefs: Preferences = {
   theme: 'default',
@@ -39,6 +41,8 @@ const Settings: React.FC = () => {
   const [tab, setTab] = useState<Tab>('tags');
   const [tags, setTags] = useState<Tag[]>([]);
   const [prefs, setPrefs] = useState<Preferences>(defaultPrefs);
+  const [referral, setReferral] = useState<ReferralSummary | null>(null);
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -46,9 +50,14 @@ const Settings: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [tagList, preferences] = await Promise.all([tagsAPI.listAll(), profileAPI.getPreferences()]);
+        const [tagList, preferences, referralSummary] = await Promise.all([
+          tagsAPI.listAll(),
+          profileAPI.getPreferences(),
+          referralAPI.getSummary(),
+        ]);
         setTags(tagList);
         setPrefs({ ...defaultPrefs, ...preferences });
+        setReferral(referralSummary);
       } catch (err) {
         console.error('Failed to load settings', err);
       } finally {
@@ -56,6 +65,15 @@ const Settings: React.FC = () => {
       }
     })();
   }, []);
+
+  const referralLink = referral ? `${window.location.origin}/register?ref=${referral.referralCode}` : '';
+
+  const handleCopyReferral = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleToggleTag = async (tag: Tag) => {
     const newActive = !tag.active;
@@ -119,6 +137,7 @@ const Settings: React.FC = () => {
           <button className={`${styles.tab} ${tab === 'tags' ? styles.tabActive : ''}`} onClick={() => setTab('tags')}>Manage Tags</button>
           <button className={`${styles.tab} ${tab === 'notifications' ? styles.tabActive : ''}`} onClick={() => setTab('notifications')}>Notifications</button>
           <button className={`${styles.tab} ${tab === 'themes' ? styles.tabActive : ''}`} onClick={() => setTab('themes')}>Themes</button>
+          <button className={`${styles.tab} ${tab === 'referrals' ? styles.tabActive : ''}`} onClick={() => setTab('referrals')}>Referrals</button>
         </div>
 
         {tab === 'tags' && (
@@ -268,6 +287,50 @@ const Settings: React.FC = () => {
             >
               Apply Theme
             </button>
+          </div>
+        )}
+
+        {tab === 'referrals' && referral && (
+          <div className={styles.detailCard}>
+            <h2 style={{ marginTop: 0 }}>Referrals</h2>
+            <p style={{ color: 'var(--gray-500)', fontSize: 14 }}>
+              Share your code — when someone you referred subscribes, you earn 10% of what they pay as referral credit.
+            </p>
+
+            <div style={{ textAlign: 'center', margin: '20px 0' }}>
+              <div style={{ fontSize: 12, color: 'var(--gray-500)', marginBottom: 6 }}>Your referral code</div>
+              <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: 4, color: 'var(--primary)', fontFamily: 'monospace' }}>
+                {referral.referralCode}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                readOnly
+                value={referralLink}
+                onFocus={(e) => e.target.select()}
+                style={{ flex: 1, padding: '10px 12px', border: '2px solid var(--gray-200)', borderRadius: 8, background: 'var(--gray-50)', color: 'var(--gray-700)', fontSize: 13 }}
+              />
+              <button
+                type="button"
+                onClick={handleCopyReferral}
+                className={styles.addButton}
+                style={{ border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                {copied ? 'Copied!' : 'Copy link'}
+              </button>
+            </div>
+
+            <div className={styles.statsRow} style={{ marginTop: 24, gridTemplateColumns: 'repeat(2, 1fr)' }}>
+              <div className={styles.statCard}>
+                <div className={styles.statValue}>{referral.referredCount}</div>
+                <div className={styles.statLabel}>People referred</div>
+              </div>
+              <div className={styles.statCard}>
+                <div className={styles.statValue}>₹{referral.totalCredited}</div>
+                <div className={styles.statLabel}>Credit earned</div>
+              </div>
+            </div>
           </div>
         )}
       </div>
