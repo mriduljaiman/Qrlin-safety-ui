@@ -33,6 +33,7 @@ const IncomingCallModal: React.FC = () => {
     DEFAULT_ICE_SERVERS,
     'callee'
   );
+  const joinedForRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !user || !connected) return;
@@ -44,6 +45,18 @@ const IncomingCallModal: React.FC = () => {
     });
     return () => unsubscribe?.();
   }, [isAuthenticated, user, connected, subscribeToScans]);
+
+  // `join` closes over the sessionToken that was current when this render happened. Calling
+  // it directly from the Answer button's onClick handler would use the closure from *before*
+  // setAccepted(true) takes effect (React state updates aren't synchronous), so it would still
+  // see sessionToken=null and no-op - the call would look "answered" but never actually connect.
+  // Running it from an effect keyed off `accepted` guarantees it fires with the up-to-date join.
+  useEffect(() => {
+    if (accepted && call && joinedForRef.current !== call.sessionToken) {
+      joinedForRef.current = call.sessionToken;
+      join();
+    }
+  }, [accepted, call, join]);
 
   useEffect(() => {
     if (call && !accepted) {
@@ -59,7 +72,6 @@ const IncomingCallModal: React.FC = () => {
 
   const handleAccept = () => {
     setAccepted(true);
-    join();
   };
 
   const handleEnd = async () => {

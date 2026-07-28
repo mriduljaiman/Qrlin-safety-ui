@@ -1,16 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import styles from '../Layout/Header.module.css';
 
+const NAV_LINKS = [
+  { to: '/dashboard', label: 'My Tags' },
+  { to: '/profile', label: 'Profile' },
+  { to: '/last-scan', label: 'Last Scan' },
+  { to: '/messages', label: 'Messages' },
+  { to: '/settings', label: 'Settings' },
+];
+
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const links = user?.role === 'ADMIN' ? [...NAV_LINKS, { to: '/admin', label: 'Admin' }] : NAV_LINKS;
 
   return (
     <header className={styles.header}>
@@ -20,20 +31,37 @@ const Header: React.FC = () => {
         </Link>
 
         <nav className={styles.nav}>
-          <Link to="/dashboard" className={styles.navLink}>My Tags</Link>
-          <Link to="/profile" className={styles.navLink}>Profile</Link>
-          <Link to="/last-scan" className={styles.navLink}>Last Scan</Link>
-          <Link to="/messages" className={styles.navLink}>Messages</Link>
-          <Link to="/settings" className={styles.navLink}>Settings</Link>
-          {user?.role === 'ADMIN' && (
-            <Link to="/admin" className={styles.navLink}>Admin</Link>
-          )}
+          {links.map((link) => (
+            <Link key={link.to} to={link.to} className={styles.navLink}>{link.label}</Link>
+          ))}
         </nav>
 
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Logout
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            Logout
+          </button>
+          <button
+            className={styles.hamburgerButton}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+          >
+            <span className={styles.hamburgerBar} />
+            <span className={styles.hamburgerBar} />
+            <span className={styles.hamburgerBar} />
+          </button>
+        </div>
       </div>
+
+      {menuOpen && (
+        <nav className={styles.mobileNav}>
+          {links.map((link) => (
+            <Link key={link.to} to={link.to} className={styles.mobileNavLink} onClick={() => setMenuOpen(false)}>
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
     </header>
   );
 };

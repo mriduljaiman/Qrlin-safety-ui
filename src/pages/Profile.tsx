@@ -146,9 +146,11 @@ const Profile: React.FC = () => {
       });
       setProfile((prev) => ({ ...prev, ...updated }));
       setSuccess('Profile updated');
-      setTimeout(() => setSuccess(''), 3000);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => setSuccess(''), 4000);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Could not save profile');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSaving(false);
     }
@@ -329,6 +331,8 @@ const Profile: React.FC = () => {
           <button type="submit" className={styles.addButton} disabled={saving} style={{ border: 'none', cursor: 'pointer', width: '100%', justifyContent: 'center' }}>
             {saving ? 'Saving...' : 'Save Profile'}
           </button>
+          {success && <p style={{ textAlign: 'center', color: '#2a2', fontWeight: 600, marginTop: 12 }}>✓ {success}</p>}
+          {error && <p style={{ textAlign: 'center', color: '#c33', fontWeight: 600, marginTop: 12 }}>{error}</p>}
         </form>
       </div>
     </div>

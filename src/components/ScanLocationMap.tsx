@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import './ScanLocationMap.css';
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png?url';
 import markerIcon2xUrl from 'leaflet/dist/images/marker-icon-2x.png?url';
 import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png?url';

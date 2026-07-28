@@ -34,7 +34,8 @@ const SosButton: React.FC<SosButtonProps> = ({ code, lat, lng }) => {
     rafRef.current = requestAnimationFrame(tick);
   };
 
-  const start = () => {
+  const start = (e: React.PointerEvent) => {
+    e.preventDefault();
     setError(false);
     startRef.current = Date.now();
     rafRef.current = requestAnimationFrame(tick);
@@ -50,35 +51,40 @@ const SosButton: React.FC<SosButtonProps> = ({ code, lat, lng }) => {
     }
   };
 
+  const label = sent ? '🚨 Alert sent to owner' : error ? 'Failed — try again' : 'HOLD 2s FOR SOS ALERT';
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <button
-        type="button"
-        onPointerDown={start}
-        onPointerUp={cancel}
-        onPointerLeave={cancel}
-        style={{
-          position: 'relative',
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          border: 'none',
-          cursor: 'pointer',
-          background: `conic-gradient(#742a2a ${progress * 360}deg, #e53e3e ${progress * 360}deg)`,
-          color: 'white',
-          fontWeight: 700,
-          fontSize: 13,
-          userSelect: 'none',
-          touchAction: 'none',
-        }}
-        title="Hold for 2 seconds to send an urgent alert"
-      >
-        SOS
-      </button>
-      <span style={{ fontSize: 11, color: 'var(--gray-500)' }}>
-        {sent ? '🚨 Alert sent to owner' : error ? 'Failed — try again' : 'Hold 2s for urgent alert'}
-      </span>
-    </div>
+    <button
+      type="button"
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(e) => e.preventDefault()}
+      style={{
+        position: 'relative',
+        width: '100%',
+        padding: '16px 20px',
+        borderRadius: 10,
+        border: '2px solid #e53e3e',
+        cursor: 'pointer',
+        background: `linear-gradient(to right, #742a2a ${progress * 100}%, #fff5f5 ${progress * 100}%)`,
+        color: progress > 0.5 ? 'white' : '#c53030',
+        fontWeight: 700,
+        fontSize: 14,
+        letterSpacing: 0.5,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'none',
+        overflow: 'hidden',
+        transition: 'color 0.1s linear',
+      }}
+      title="Hold for 2 seconds to send an urgent alert to the owner"
+    >
+      {label}
+    </button>
   );
 };
 

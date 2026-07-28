@@ -181,6 +181,16 @@ const PublicScan: React.FC = () => {
           )}
           {tag.address && <p className={styles.maskedContact}>📍 {tag.address}</p>}
 
+          {tag.customFields && tag.customFields.length > 0 && (
+            <div style={{ marginTop: 8, textAlign: 'left' }}>
+              {tag.customFields.map((field, i) => (
+                <p key={i} className={styles.maskedContact} style={{ margin: '4px 0' }}>
+                  <strong>{field.label}:</strong> {field.value}
+                </p>
+              ))}
+            </div>
+          )}
+
           {!tag.contactPhone && !tag.address && !tag.whatsappNumber && (
             tag.maskedContact ? (
               <p className={styles.maskedContact}>Owner contact: {tag.maskedContact}</p>
@@ -249,7 +259,7 @@ const PublicScan: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
             <button
               onClick={handleStartCall}
               disabled={callStarting}
@@ -260,10 +270,15 @@ const PublicScan: React.FC = () => {
             >
               📞 {callStarting ? 'Calling...' : 'Call Owner (free)'}
             </button>
-            {code && <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />}
           </div>
         </div>
       </div>
+
+      {code && (
+        <div style={{ maxWidth: 420, margin: '16px auto 0' }}>
+          <SosButton code={code} lat={location.latitude || undefined} lng={location.longitude || undefined} />
+        </div>
+      )}
 
       {activeCall && code && (
         <CallModal

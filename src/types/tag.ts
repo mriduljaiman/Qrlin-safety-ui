@@ -30,6 +30,11 @@ export interface TagRequest {
   qrCenterText?: string;
 }
 
+export interface CustomField {
+  label: string;
+  value: string;
+}
+
 export interface SafetyInfo {
   bloodGroup: string | null;
   medicalConditions: string | null;
@@ -45,6 +50,7 @@ export interface SafetyInfo {
   showContactPhone: boolean;
   showAddress: boolean;
   showWhatsapp: boolean;
+  customFields: CustomField[];
 }
 
 export interface PublicTag {
@@ -59,6 +65,7 @@ export interface PublicTag {
   contactPhone: string | null;
   address: string | null;
   whatsappNumber: string | null;
+  customFields: CustomField[] | null;
 }
 
 export interface ChatMessage {

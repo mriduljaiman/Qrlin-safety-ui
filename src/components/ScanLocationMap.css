@@ -1,0 +1,9 @@
+/* Leaflet requires attribution to OpenStreetMap, but its default control is
+   sized for a full-page map. Shrink it to an unobtrusive corner credit. */
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  padding: 0 4px !important;
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.6) !important;
+}

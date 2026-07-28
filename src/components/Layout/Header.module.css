@@ -54,8 +54,57 @@
     background: #c53030;
   }
 
+  .hamburgerButton {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .hamburgerBar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--gray-600);
+    border-radius: 2px;
+  }
+
+  .mobileNav {
+    display: none;
+  }
+
   @media (max-width: 768px) {
     .nav {
       display: none;
+    }
+
+    .hamburgerButton {
+      display: flex;
+    }
+
+    .mobileNav {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 20px 16px;
+      border-top: 1px solid var(--gray-100);
+      background: var(--surface);
+    }
+
+    .mobileNavLink {
+      padding: 12px 0;
+      color: var(--gray-600);
+      text-decoration: none;
+      font-weight: 500;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .mobileNavLink:last-child {
+      border-bottom: none;
     }
   }
