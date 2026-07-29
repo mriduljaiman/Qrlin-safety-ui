@@ -22,6 +22,8 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Careers from './pages/Careers';
 import AdminPanel from './pages/AdminPanel';
+import AdminSafeTagsQueue from './pages/admin/AdminSafeTagsQueue';
+import AdminSafeTagDetail from './pages/admin/AdminSafeTagDetail';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import ForgotPassword from './components/Auth/ForgotPassword';
@@ -148,6 +150,18 @@ function App() {
               <Route path="/admin" element={
                 <AdminRoute>
                   <AdminPanel />
+                </AdminRoute>
+              } />
+
+              <Route path="/admin/safetags" element={
+                <AdminRoute>
+                  <AdminSafeTagsQueue />
+                </AdminRoute>
+              } />
+
+              <Route path="/admin/safetags/:id" element={
+                <AdminRoute>
+                  <AdminSafeTagDetail />
                 </AdminRoute>
               } />
 
