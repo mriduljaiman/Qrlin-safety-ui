@@ -50,6 +50,11 @@ const Home: React.FC = () => {
               Learn More
             </a>
           </div>
+          <p style={{ marginTop: 16 }}>
+            <Link to="/request-safetag" style={{ color: 'var(--gray-500)', fontSize: 14, textDecoration: 'underline' }}>
+              Just want a physical SafeTag mailed to you? Request one - no account needed →
+            </Link>
+          </p>
         </motion.div>
 
         <motion.div

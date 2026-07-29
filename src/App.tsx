@@ -14,6 +14,7 @@ const Messages = lazy(() => import('./pages/Messages'));
 import AddTag from './pages/AddTag';
 import TagDetail from './pages/TagDetail';
 import PublicScan from './pages/PublicScan';
+import RequestSafeTag from './pages/RequestSafeTag';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Terms from './pages/Terms';
@@ -24,6 +25,7 @@ import Careers from './pages/Careers';
 import AdminPanel from './pages/AdminPanel';
 import AdminSafeTagsQueue from './pages/admin/AdminSafeTagsQueue';
 import AdminSafeTagDetail from './pages/admin/AdminSafeTagDetail';
+import AdminSafeTagRequestsQueue from './pages/admin/AdminSafeTagRequestsQueue';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import ForgotPassword from './components/Auth/ForgotPassword';
@@ -95,6 +97,7 @@ function App() {
                 </RequireAuthOnly>
               } />
               <Route path="/scan/:code" element={<PublicScan />} />
+              <Route path="/request-safetag" element={<RequestSafeTag />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/about" element={<About />} />
@@ -162,6 +165,12 @@ function App() {
               <Route path="/admin/safetags/:id" element={
                 <AdminRoute>
                   <AdminSafeTagDetail />
+                </AdminRoute>
+              } />
+
+              <Route path="/admin/safetag-requests" element={
+                <AdminRoute>
+                  <AdminSafeTagRequestsQueue />
                 </AdminRoute>
               } />
 

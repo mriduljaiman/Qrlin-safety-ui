@@ -123,9 +123,14 @@ const AdminPanel: React.FC = () => {
             <p style={{ color: 'var(--gray-500)' }}>
               Create, track, and reissue physical SafeTags - from print through shipping to activation.
             </p>
-            <Link to="/admin/safetags">
-              <Button>Open SafeTags Queue →</Button>
-            </Link>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Link to="/admin/safetags">
+                <Button>Open SafeTags Queue →</Button>
+              </Link>
+              <Link to="/admin/safetag-requests">
+                <Button variant="secondary">Open Intake Requests →</Button>
+              </Link>
+            </div>
           </div>
         )}
       </div>
