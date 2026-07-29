@@ -27,6 +27,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_URL}/ws`),
+      // The backend only trusts a STOMP session's identity if it presented a valid JWT at
+      // CONNECT - without this, /topic/user/{id} subscriptions from this client get rejected
+      // (see StompAuthChannelInterceptor), since /ws itself has no HTTP-level auth to fall back on.
+      connectHeaders: { Authorization: `Bearer ${localStorage.getItem('token') || ''}` },
       reconnectDelay: 5000,
       onConnect: () => {
         clientRef.current = client;
