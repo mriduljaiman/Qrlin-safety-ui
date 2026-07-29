@@ -16,10 +16,34 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // A stable signing identity (not the ephemeral, auto-generated debug.keystore that differs
+    // per machine/CI run) so the app's SHA-1 fingerprint stays constant across builds - required
+    // for native Google Sign-In, which is registered against one fixed SHA-1 in Google Cloud
+    // Console. Falls back to the default debug keystore when the env vars aren't set (local
+    // builds that don't need Google Sign-In to work), so this is a no-op outside CI/signed builds.
+    signingConfigs {
+        qrlin {
+            def ksFile = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (ksFile) {
+                storeFile file(ksFile)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
+        debug {
+            if (System.getenv("ANDROID_KEYSTORE_PATH")) {
+                signingConfig signingConfigs.qrlin
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("ANDROID_KEYSTORE_PATH")) {
+                signingConfig signingConfigs.qrlin
+            }
         }
     }
 }

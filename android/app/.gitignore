@@ -1,2 +1,6 @@
 /build/*
 !/build/.npmkeep
+
+# Decoded at build time from the ANDROID_KEYSTORE_BASE64 secret - never commit the real keystore.
+*.keystore
+*.jks
