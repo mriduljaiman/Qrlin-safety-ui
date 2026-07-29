@@ -3,6 +3,7 @@ import Modal from './Common/Modal';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { playNotificationSound } from '../utils/notificationSounds';
+import { useCountryTimezone } from '../hooks/useCountryTimezone';
 
 interface SosEvent {
   type: string;
@@ -17,6 +18,7 @@ const SosAlertPopup: React.FC = () => {
   const { subscribeToScans, connected } = useWebSocket();
   const [event, setEvent] = useState<SosEvent | null>(null);
   const ringIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countryTz = useCountryTimezone();
 
   useEffect(() => {
     if (!isAuthenticated || !user || !connected) return;
@@ -52,7 +54,7 @@ const SosAlertPopup: React.FC = () => {
           Someone who scanned <strong>{event.tagName || 'your tag'}</strong> just sent an urgent SOS alert.
         </div>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--gray-500)' }}>
-          {new Date(event.timestamp).toLocaleString()}
+          {new Date(event.timestamp).toLocaleString(undefined, countryTz ? { timeZone: countryTz } : undefined)}
         </p>
         <button
           onClick={() => setEvent(null)}

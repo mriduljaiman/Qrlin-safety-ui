@@ -1,0 +1,51 @@
+name: Android debug APK
+
+# Manual trigger only for now - this is for sideload testing during native-call development
+# (see the Capacitor + FCM + ConnectionService plan), not an auto-deploy pipeline. Also builds
+# on every push that touches the Android project or web source, so a debug APK is always
+# available as a workflow artifact without having to remember to trigger it.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'capacitor.config.ts'
+      - '.env.capacitor'
+      - 'package.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets (capacitor mode) + sync
+        run: npm run build:android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --console=plain
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qrlin-safety-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30

@@ -26,12 +26,11 @@ const ScanNotificationPopup: React.FC = () => {
   const navigate = useNavigate();
   const [event, setEvent] = useState<ScanEvent | null>(null);
   const [prefs, setPrefs] = useState<Preferences | null>(null);
-  const [countryTz, setCountryTz] = useState<string | undefined>(undefined);
+  const countryTz = useCountryTimezone();
 
   useEffect(() => {
     if (!isAuthenticated) return;
     profileAPI.getPreferences().then(setPrefs).catch(() => {});
-    profileAPI.getMe().then((p) => setCountryTz(getTimezoneForCountry(p.country))).catch(() => {});
   }, [isAuthenticated]);
 
   useEffect(() => {

@@ -122,7 +122,13 @@ export const COUNTRY_TIMEZONES: Record<string, string> = {
   Zimbabwe: 'Africa/Harare',
 };
 
+// Every other default in this app (phone code, country dropdown) assumes
+// India until the user changes it - a profile with no country saved yet
+// (common: the Profile page shows "India" pre-selected in the UI, but
+// that's a display default only, never persisted unless Save is pressed)
+// should behave the same way here instead of silently falling back to
+// whatever timezone the current device happens to be in.
 export function getTimezoneForCountry(country: string | null | undefined): string | undefined {
-  if (!country) return undefined;
-  return COUNTRY_TIMEZONES[country];
+  if (!country) return COUNTRY_TIMEZONES.India;
+  return COUNTRY_TIMEZONES[country] || COUNTRY_TIMEZONES.India;
 }

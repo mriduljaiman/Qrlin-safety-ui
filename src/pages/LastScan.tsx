@@ -3,25 +3,20 @@ import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import ScanLocationMap from '../components/ScanLocationMap';
 import { scansAPI } from '../api/scans';
-import { profileAPI } from '../api/profile';
 import { LastScan as LastScanType } from '../types/scan';
-import { getTimezoneForCountry } from '../utils/countryTimezones';
+import { useCountryTimezone } from '../hooks/useCountryTimezone';
 import styles from './Tags.module.css';
 
 const LastScanPage: React.FC = () => {
   const [scans, setScans] = useState<LastScanType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [countryTz, setCountryTz] = useState<string | undefined>(undefined);
+  const countryTz = useCountryTimezone();
 
   useEffect(() => {
     (async () => {
       try {
-        const [data, profile] = await Promise.all([
-          scansAPI.getLastScans(),
-          profileAPI.getMe().catch(() => null),
-        ]);
+        const data = await scansAPI.getLastScans();
         setScans(data);
-        if (profile) setCountryTz(getTimezoneForCountry(profile.country));
       } catch (err) {
         console.error('Failed to load last scans', err);
       } finally {

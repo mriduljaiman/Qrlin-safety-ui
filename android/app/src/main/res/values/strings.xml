@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Qrlin Safety</string>
+    <string name="title_activity_main">Qrlin Safety</string>
+    <string name="package_name">in.qrlin.safety</string>
+    <string name="custom_url_scheme">in.qrlin.safety</string>
+</resources>

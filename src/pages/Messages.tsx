@@ -4,6 +4,7 @@ import Loading from '../components/Common/Loading';
 import { tagsAPI } from '../api/tags';
 import { chatAPI } from '../api/chat';
 import { ChatThread } from '../types/tag';
+import { useCountryTimezone } from '../hooks/useCountryTimezone';
 import styles from './Tags.module.css';
 
 interface ThreadWithTag {
@@ -19,6 +20,7 @@ const Messages: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countryTz = useCountryTimezone();
 
   const loadAll = async () => {
     try {
@@ -118,7 +120,7 @@ const Messages: React.FC = () => {
                     >
                       <div style={{ fontWeight: 600 }}>{item.tagName}</div>
                       <div style={{ fontSize: 11, opacity: 0.8 }}>
-                        {new Date(item.thread.lastMessageAt).toLocaleString()}
+                        {new Date(item.thread.lastMessageAt).toLocaleString(undefined, countryTz ? { timeZone: countryTz } : undefined)}
                       </div>
                     </button>
                   );
@@ -153,7 +155,7 @@ const Messages: React.FC = () => {
                     >
                       {m.body}
                       <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>
-                        {new Date(m.sentAt).toLocaleTimeString()}
+                        {new Date(m.sentAt).toLocaleTimeString(undefined, countryTz ? { timeZone: countryTz } : undefined)}
                       </div>
                     </div>
                   ))}

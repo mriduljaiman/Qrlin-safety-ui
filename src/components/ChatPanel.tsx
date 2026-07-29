@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { chatAPI } from '../api/chat';
 import { ChatThread } from '../types/tag';
+import { useCountryTimezone } from '../hooks/useCountryTimezone';
 import VoiceMessageBubble from './VoiceMessageBubble';
 import VoiceRecorderButton from './VoiceRecorderButton';
 import styles from '../pages/Tags.module.css';
@@ -16,6 +17,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countryTz = useCountryTimezone();
 
   const loadThreads = async () => {
     try {
@@ -95,7 +97,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
               >
                 Finder {threads.indexOf(t) + 1}
                 <div style={{ fontSize: 11, opacity: 0.8 }}>
-                  {new Date(t.lastMessageAt).toLocaleDateString()}
+                  {new Date(t.lastMessageAt).toLocaleDateString(undefined, countryTz ? { timeZone: countryTz } : undefined)}
                 </div>
               </button>
             ))}
@@ -133,7 +135,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ tagId }) => {
                     m.body
                   )}
                   <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>
-                    {new Date(m.sentAt).toLocaleTimeString()}
+                    {new Date(m.sentAt).toLocaleTimeString(undefined, countryTz ? { timeZone: countryTz } : undefined)}
                   </div>
                 </div>
               ))}
