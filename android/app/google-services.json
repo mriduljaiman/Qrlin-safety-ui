@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "553410560772",
+    "project_id": "qrlin-safetag",
+    "storage_bucket": "qrlin-safetag.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:553410560772:android:31c4add880a2bbbe384651",
+        "android_client_info": {
+          "package_name": "in.qrlin.safety"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFjOFpQY_INRpEODtY5aw9bhEljrrfuGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
