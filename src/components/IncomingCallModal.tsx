@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import Modal from './Common/Modal';
 import { useAuth } from '../hooks/useAuth';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -6,6 +7,7 @@ import { callAPI } from '../api/calls';
 import { useCallSignaling } from '../hooks/useCallSignaling';
 import { playNotificationSound } from '../utils/notificationSounds';
 import { IceServer } from '../types/tag';
+import { CallBridge, PendingCallData } from '../native/CallBridge';
 
 interface IncomingCallEvent {
   type: string;
@@ -38,7 +40,10 @@ const IncomingCallModal: React.FC = () => {
   const closedForRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated || !user || !connected) return;
+    // On native, FCM + the ConnectionService/notification (see below) is the sole ringing path -
+    // subscribing here too would double-ring (native Telecom ringtone plus this component's own
+    // beep) whenever the app happens to be foregrounded when a call arrives.
+    if (!isAuthenticated || !user || !connected || Capacitor.isNativePlatform()) return;
     const unsubscribe = subscribeToScans(user.id, (message: IncomingCallEvent) => {
       if (message.type === 'CALL_INCOMING') {
         setCall(message);
@@ -47,6 +52,52 @@ const IncomingCallModal: React.FC = () => {
     });
     return () => unsubscribe?.();
   }, [isAuthenticated, user, connected, subscribeToScans]);
+
+  // On native, an incoming call may already have been answered natively (ConnectionService +
+  // the OS call UI, see the Android CallConnection/CallFirebaseMessagingService code) before this
+  // component - or even the whole JS app - existed. There's no STOMP CALL_INCOMING push backing
+  // that case, just the handoff data the native side captured, so it goes straight to `accepted`
+  // instead of ringing again in-app.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const toEvent = (data: PendingCallData): IncomingCallEvent | null => {
+      if (!data.sessionToken) return null;
+      let iceServers: IceServer[] = [];
+      try {
+        iceServers = data.iceServers ? JSON.parse(data.iceServers) : [];
+      } catch {
+        // Malformed/missing - useCallSignaling falls back to an empty ICE list.
+      }
+      return {
+        type: 'CALL_INCOMING',
+        sessionToken: data.sessionToken,
+        tagName: data.tagName,
+        qrCode: data.qrCode || '',
+        iceServers,
+      };
+    };
+
+    CallBridge.checkPendingCall().then((data) => {
+      const event = toEvent(data);
+      if (event) {
+        setCall(event);
+        setAccepted(true);
+      }
+    });
+
+    const listenerPromise = CallBridge.addListener('callAnswered', (data) => {
+      const event = toEvent(data);
+      if (event) {
+        setCall(event);
+        setAccepted(true);
+      }
+    });
+
+    return () => {
+      listenerPromise.then((handle) => handle.remove());
+    };
+  }, []);
 
   // `join` closes over the sessionToken that was current when this render happened. Calling
   // it directly from the Answer button's onClick handler would use the closure from *before*

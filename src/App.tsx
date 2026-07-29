@@ -30,6 +30,14 @@ import ScanNotificationPopup from './components/ScanNotificationPopup';
 import IncomingCallModal from './components/IncomingCallModal';
 import SosAlertPopup from './components/SosAlertPopup';
 import { useAuth } from './hooks/useAuth';
+import { useFcmTokenRegistration } from './hooks/useFcmTokenRegistration';
+
+// No UI of its own - just keeps this device's FCM token registered with the backend while
+// logged in (native only), so incoming calls can reach it even backgrounded/killed.
+function FcmTokenRegistrar() {
+  useFcmTokenRegistration();
+  return null;
+}
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, initializing } = useAuth();
@@ -52,6 +60,7 @@ function App() {
             <ScanNotificationPopup />
             <IncomingCallModal />
             <SosAlertPopup />
+            <FcmTokenRegistrar />
             <Routes>
               <Route path="/" element={
                 <Suspense fallback={<Loading fullScreen />}>
