@@ -83,6 +83,10 @@ const Login: React.FC = () => {
             />
           </div>
 
+          <Link to="/forgot-password" style={{ fontSize: 13, alignSelf: 'flex-end', marginTop: -8 }}>
+            Forgot password?
+          </Link>
+
           <button type="submit" className={styles.submitButton} disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

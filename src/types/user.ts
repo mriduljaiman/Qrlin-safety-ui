@@ -3,6 +3,7 @@ export interface User {
     email: string;
     fullName: string;
     role: string;
+    mustChangePassword: boolean;
   }
 
   export interface LoginRequest {
@@ -34,4 +35,5 @@ export interface User {
     userId: number;
     email: string;
     role: string;
+    mustChangePassword: boolean;
   }

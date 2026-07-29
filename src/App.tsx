@@ -24,7 +24,10 @@ import Careers from './pages/Careers';
 import AdminPanel from './pages/AdminPanel';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
+import ForgotPassword from './components/Auth/ForgotPassword';
+import ResetPassword from './components/Auth/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
+import ChangePassword from './pages/ChangePassword';
 import NotFound from './pages/NotFound';
 import ScanNotificationPopup from './components/ScanNotificationPopup';
 import IncomingCallModal from './components/IncomingCallModal';
@@ -40,6 +43,16 @@ function FcmTokenRegistrar() {
 }
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user, initializing } = useAuth();
+  if (initializing) return <Loading fullScreen />;
+  if (!isAuthenticated) return <Navigate to="/login" />;
+  // Mirrors PasswordChangeGateFilter server-side - a temp-password account can't reach any
+  // other private route (including a stale one already in the URL/history) until this clears.
+  if (user?.mustChangePassword) return <Navigate to="/change-password" />;
+  return <>{children}</>;
+}
+
+function RequireAuthOnly({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, initializing } = useAuth();
   if (initializing) return <Loading fullScreen />;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
@@ -69,7 +82,16 @@ function App() {
               } />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/change-password" element={
+                // Deliberately not wrapped in PrivateRoute - PrivateRoute redirects here
+                // *because of* mustChangePassword, so reusing it here would loop forever.
+                <RequireAuthOnly>
+                  <ChangePassword />
+                </RequireAuthOnly>
+              } />
               <Route path="/scan/:code" element={<PublicScan />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />

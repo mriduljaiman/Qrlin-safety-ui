@@ -8,6 +8,7 @@ interface AuthContextType {
   initializing: boolean;
   login: (authData: AuthResponse) => void;
   logout: () => void;
+  clearMustChangePassword: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -17,6 +18,7 @@ export const AuthContext = createContext<AuthContextType>({
   initializing: true,
   login: () => {},
   logout: () => {},
+  clearMustChangePassword: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -41,8 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: authData.email,
       fullName: '',
       role: authData.role,
+      mustChangePassword: authData.mustChangePassword,
     };
-    
+
     setToken(authData.token);
     setUser(userData);
     localStorage.setItem('token', authData.token);
@@ -56,6 +59,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
+  // Called once the forced password change completes - avoids a full re-login just to flip
+  // one flag, since the backend already cleared mustChangePassword on its side.
+  const clearMustChangePassword = () => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, mustChangePassword: false };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -64,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       initializing,
       login,
       logout,
+      clearMustChangePassword,
     }}>
       {children}
     </AuthContext.Provider>

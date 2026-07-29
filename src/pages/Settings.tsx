@@ -26,7 +26,7 @@ const FONT_FAMILY_OPTIONS = [
 ];
 const COLOR_OPTIONS = ['#667eea', '#0ea5e9', '#f97316', '#16a34a', '#f43f5e', '#a855f7', '#1a202c'];
 
-type Tab = 'tags' | 'notifications' | 'themes' | 'referrals';
+type Tab = 'tags' | 'notifications' | 'themes' | 'referrals' | 'security';
 
 const defaultPrefs: Preferences = {
   theme: 'default',
@@ -138,6 +138,7 @@ const Settings: React.FC = () => {
           <button className={`${styles.tab} ${tab === 'notifications' ? styles.tabActive : ''}`} onClick={() => setTab('notifications')}>Notifications</button>
           <button className={`${styles.tab} ${tab === 'themes' ? styles.tabActive : ''}`} onClick={() => setTab('themes')}>Themes</button>
           <button className={`${styles.tab} ${tab === 'referrals' ? styles.tabActive : ''}`} onClick={() => setTab('referrals')}>Referrals</button>
+          <button className={`${styles.tab} ${tab === 'security' ? styles.tabActive : ''}`} onClick={() => setTab('security')}>Account &amp; Security</button>
         </div>
 
         {tab === 'tags' && (
@@ -287,6 +288,18 @@ const Settings: React.FC = () => {
             >
               Apply Theme
             </button>
+          </div>
+        )}
+
+        {tab === 'security' && (
+          <div className={styles.detailCard}>
+            <h2 style={{ marginTop: 0 }}>Account &amp; Security</h2>
+            <p style={{ color: 'var(--gray-500)', fontSize: 14 }}>
+              Change the password you use to sign in.
+            </p>
+            <Link to="/change-password" className={styles.addButton} style={{ display: 'inline-block', textDecoration: 'none' }}>
+              Change Password
+            </Link>
           </div>
         )}
 

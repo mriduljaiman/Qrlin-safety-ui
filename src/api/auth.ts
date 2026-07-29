@@ -26,4 +26,19 @@ export const authAPI = {
     const response = await axios.post('/api/auth/oauth/google', data);
     return response.data;
   },
+
+  changePassword: async (newPassword: string, currentPassword?: string): Promise<{ message: string }> => {
+    const response = await axios.post('/api/users/me/change-password', { currentPassword, newPassword });
+    return response.data;
+  },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await axios.post('/api/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  resetPassword: async (email: string, otp: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await axios.post('/api/auth/reset-password', { email, otp, newPassword });
+    return response.data;
+  },
 };

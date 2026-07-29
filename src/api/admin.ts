@@ -30,4 +30,9 @@ export const adminAPI = {
     const response = await axios.get('/api/admin/coupons');
     return response.data;
   },
+
+  createUser: async (data: { email: string; fullName: string; phone?: string }) => {
+    const response = await axios.post('/api/admin/users', data);
+    return response.data;
+  },
 };
