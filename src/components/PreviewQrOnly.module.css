@@ -1,0 +1,51 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px;
+  border: 2px dashed var(--gray-200);
+  border-radius: 12px;
+}
+
+.icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--gray-500);
+  font-size: 13px;
+  margin-bottom: 16px;
+  max-width: 320px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  margin-bottom: 10px;
+}
+
+.detailRow {
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.ctaLink {
+  margin-top: 12px;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+}

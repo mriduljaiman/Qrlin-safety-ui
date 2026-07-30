@@ -52,7 +52,23 @@ export const tagsAPI = {
   deleteSafetyInfo: async (id: number): Promise<void> => {
     await axios.delete(`/api/tags/${id}/safety-info`);
   },
+
+  getSafeTagStatus: async (id: number): Promise<SafeTagStatus> => {
+    const response = await axios.get(`/api/tags/${id}/safetag-status`);
+    return response.data;
+  },
 };
+
+// "NONE" means no physical SafeTag has been issued for this Tag yet - see
+// SafeTagStatusResponse.none() on the backend.
+export interface SafeTagStatus {
+  status: 'NONE' | 'PENDING_PRINT' | 'PRINTED' | 'PACKED' | 'SHIPPED' | 'ACTIVE' | 'LOST' | 'REISSUED' | 'DISABLED' | 'DESTROYED';
+  tagNumber: string | null;
+  trackingNumber: string | null;
+  courierName: string | null;
+  shippedAt: string | null;
+  activatedAt: string | null;
+}
 
 export const publicScanAPI = {
   scan: async (code: string, lat?: string, lng?: string): Promise<PublicTag> => {

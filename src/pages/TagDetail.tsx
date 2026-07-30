@@ -9,7 +9,7 @@ import Header from '../components/Layout/Header';
 import Loading from '../components/Common/Loading';
 import Modal from '../components/Common/Modal';
 import ChatPanel from '../components/ChatPanel';
-import QrCustomizer from '../components/QrCustomizer';
+import PreviewQrOnly from '../components/PreviewQrOnly';
 import styles from './Tags.module.css';
 
 const emptySafetyInfo: SafetyInfo = {
@@ -261,7 +261,7 @@ const TagDetail: React.FC = () => {
 
         <div className={styles.detailGrid}>
           <div className={styles.detailCard}>
-            <QrCustomizer tag={tag} onSaved={(updated) => setTag(updated)} />
+            <PreviewQrOnly tagId={tag.id} />
 
             <div
               onClick={() => !uploadingPhoto && fileInputRef.current?.click()}

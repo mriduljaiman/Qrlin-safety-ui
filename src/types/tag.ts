@@ -1,3 +1,7 @@
+// qr* fields were removed here in Phase 5 (SafeTag lockdown) - the backend still returns them on
+// the wire for backward compatibility, but owners can no longer see, customize, or download a
+// real QR through their own account, so nothing in this app should read them anymore. See
+// PreviewQrOnly and the /api/tags/{id}/safetag-status endpoint for what replaced this.
 export interface Tag {
   id: number;
   qrCode: string;
@@ -5,12 +9,6 @@ export interface Tag {
   tagName: string;
   photoUrl: string | null;
   description: string | null;
-  qrColor: string;
-  qrBackgroundColor: string;
-  qrStyle: string;
-  qrTitleAbove: string;
-  qrTitleBelow: string;
-  qrCenterText: string;
   active: boolean;
   lostMode: boolean;
   hasSafetyInfo: boolean;
@@ -22,12 +20,6 @@ export interface TagRequest {
   tagName: string;
   photoUrl?: string;
   description?: string;
-  qrColor?: string;
-  qrBackgroundColor?: string;
-  qrStyle?: string;
-  qrTitleAbove?: string;
-  qrTitleBelow?: string;
-  qrCenterText?: string;
 }
 
 export interface CustomField {
