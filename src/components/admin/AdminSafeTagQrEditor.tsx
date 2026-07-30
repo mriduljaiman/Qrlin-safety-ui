@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { adminSafeTagsAPI } from '../../api/adminSafeTags';
 import { SafeTag } from '../../types/safeTag';
-import { QR_STYLES, QrStyleId, colorsAreTooClose, renderCustomQr, renderPrintableQr } from '../../utils/customQrRenderer';
+import { QR_STYLES, QrStyleId, colorsAreTooClose, renderCustomQr } from '../../utils/customQrRenderer';
+import { renderSecurePrintableQr, SecurityTemplateId } from '../../utils/printSecurity';
 import styles from '../QrCustomizer.module.css';
 
 const PRINT_DPI = 300;
@@ -67,14 +68,26 @@ const AdminSafeTagQrEditor: React.FC<AdminSafeTagQrEditorProps> = ({ safeTag, on
       setError('QR color and background color are too similar — please pick different colors.');
       return;
     }
+    const securityTemplateId = (safeTag.securityTemplateId as SecurityTemplateId) || 'NONE';
+    if (securityTemplateId !== 'NONE' && !safeTag.printBatchId) {
+      setError('Set a Print Batch ID in the Print Security section before downloading a secured artifact - it seeds the jitter/guilloché pattern and makes this print reproducible/auditable.');
+      return;
+    }
+
     const w = Math.max(1, widthCm);
     const h = Math.max(1, heightCm);
     const widthPx = Math.round(w * CM_TO_INCH * PRINT_DPI);
     const heightPx = Math.round(h * CM_TO_INCH * PRINT_DPI);
 
     const printCanvas = document.createElement('canvas');
-    renderPrintableQr(printCanvas, scanUrl, {
+    renderSecurePrintableQr(printCanvas, scanUrl, {
       fgColor, bgColor, style, centerText, titleAbove, titleBelow, widthPx, heightPx,
+      securityTemplateId,
+      context: {
+        qrId: safeTag.qrId,
+        printBatchId: safeTag.printBatchId || '',
+        securityPatternVersion: safeTag.securityPatternVersion || '1',
+      },
     });
 
     const link = document.createElement('a');

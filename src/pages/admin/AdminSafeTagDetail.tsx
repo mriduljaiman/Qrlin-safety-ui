@@ -5,6 +5,7 @@ import Loading from '../../components/Common/Loading';
 import AdminSafeTagQrEditor from '../../components/admin/AdminSafeTagQrEditor';
 import { adminSafeTagsAPI } from '../../api/adminSafeTags';
 import { SafeTag, SAFETAG_TRANSITIONS } from '../../types/safeTag';
+import { SECURITY_TEMPLATES, SecurityTemplateId } from '../../utils/printSecurity';
 import styles from './AdminSafeTagDetail.module.css';
 
 const AdminSafeTagDetail: React.FC = () => {
@@ -22,6 +23,12 @@ const AdminSafeTagDetail: React.FC = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [savingDetails, setSavingDetails] = useState(false);
 
+  const [securityTemplateId, setSecurityTemplateId] = useState<SecurityTemplateId>('NONE');
+  const [printBatchId, setPrintBatchId] = useState('');
+  const [printerCalibrationId, setPrinterCalibrationId] = useState('');
+  const [securityPatternVersion, setSecurityPatternVersion] = useState('');
+  const [savingSecurity, setSavingSecurity] = useState(false);
+
   const load = async (safeTagId: number) => {
     try {
       const data = await adminSafeTagsAPI.get(safeTagId);
@@ -31,6 +38,10 @@ const AdminSafeTagDetail: React.FC = () => {
       setCourierName(data.courierName || '');
       setShippingAddress(data.shippingAddress || '');
       setAdminNotes(data.adminNotes || '');
+      setSecurityTemplateId((data.securityTemplateId as SecurityTemplateId) || 'NONE');
+      setPrintBatchId(data.printBatchId || '');
+      setPrinterCalibrationId(data.printerCalibrationId || '');
+      setSecurityPatternVersion(data.securityPatternVersion || '');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Could not load SafeTag');
     } finally {
@@ -74,6 +85,27 @@ const AdminSafeTagDetail: React.FC = () => {
     } finally {
       setSavingDetails(false);
     }
+  };
+
+  const handleSaveSecurity = async () => {
+    if (!safeTag) return;
+    setSavingSecurity(true);
+    try {
+      const updated = await adminSafeTagsAPI.update(safeTag.id, {
+        securityTemplateId, printBatchId, printerCalibrationId, securityPatternVersion,
+      });
+      setSafeTag(updated);
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Could not save print security settings');
+    } finally {
+      setSavingSecurity(false);
+    }
+  };
+
+  const handleGenerateBatchId = () => {
+    const now = new Date();
+    const stamp = now.toISOString().slice(0, 10).replace(/-/g, '');
+    setPrintBatchId(`PB-${stamp}-${Math.floor(Math.random() * 9000 + 1000)}`);
   };
 
   const handleReissue = async () => {
@@ -159,6 +191,57 @@ const AdminSafeTagDetail: React.FC = () => {
           <div className={styles.card}>
             <h2>QR Design & Print Artifact</h2>
             <AdminSafeTagQrEditor safeTag={safeTag} onSaved={setSafeTag} />
+          </div>
+
+          <div className={styles.card}>
+            <h2>Print Security</h2>
+            <p style={{ color: 'var(--gray-500)', fontSize: 13, marginTop: -8 }}>
+              Applies to the printable artifact exported from the QR Design card - deterministic and
+              reproducible for the same template + batch + pattern version.
+            </p>
+            <div className={styles.field}>
+              <label>Security template</label>
+              <select
+                value={securityTemplateId}
+                onChange={(e) => setSecurityTemplateId(e.target.value as SecurityTemplateId)}
+                style={{ width: '100%', padding: '8px 10px', border: '2px solid var(--gray-200)', borderRadius: 8, background: 'var(--surface)', color: 'var(--gray-800)' }}
+              >
+                {SECURITY_TEMPLATES.map((t) => (
+                  <option key={t.id} value={t.id}>{t.label}</option>
+                ))}
+              </select>
+              <span style={{ fontSize: 12, color: 'var(--gray-500)' }}>
+                {SECURITY_TEMPLATES.find((t) => t.id === securityTemplateId)?.description}
+              </span>
+            </div>
+            <div className={styles.field}>
+              <label>Print batch ID</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input value={printBatchId} onChange={(e) => setPrintBatchId(e.target.value)} style={{ flex: 1 }} />
+                <button
+                  type="button"
+                  onClick={handleGenerateBatchId}
+                  style={{ padding: '0 12px', borderRadius: 8, border: '2px solid var(--gray-200)', background: 'var(--surface)', color: 'var(--gray-700)', cursor: 'pointer', fontSize: 12 }}
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label>Printer calibration ID</label>
+              <input value={printerCalibrationId} onChange={(e) => setPrinterCalibrationId(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label>Security pattern version</label>
+              <input value={securityPatternVersion} onChange={(e) => setSecurityPatternVersion(e.target.value)} placeholder="1" />
+            </div>
+            <button
+              onClick={handleSaveSecurity}
+              disabled={savingSecurity}
+              style={{ width: '100%', padding: '10px 16px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+            >
+              {savingSecurity ? 'Saving...' : 'Save Print Security Settings'}
+            </button>
           </div>
 
           <div className={styles.card}>

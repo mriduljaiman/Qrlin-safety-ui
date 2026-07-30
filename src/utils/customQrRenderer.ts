@@ -35,6 +35,10 @@ export interface QrRenderOptions {
   style: QrStyleId;
   centerText?: string;
   size?: number;
+  // Print-security v1 (see utils/printSecurity.ts) - an optional, deterministic per-module
+  // offset in cell units (typically a small fraction, e.g. +/-0.08). Undefined means no jitter,
+  // so every existing caller renders byte-identical to before this was added.
+  moduleJitter?: (row: number, col: number) => { dx: number; dy: number };
 }
 
 // Relative luminance per WCAG, used to flag foreground/background colors that
@@ -200,7 +204,7 @@ const DRAW_FNS: Record<QrStyleId, DrawFn> = {
 };
 
 export function renderCustomQr(canvas: HTMLCanvasElement, text: string, options: QrRenderOptions): void {
-  const { fgColor, bgColor, style, centerText, size = 300 } = options;
+  const { fgColor, bgColor, style, centerText, size = 300, moduleJitter } = options;
   const qr = QRCode.create(text, { errorCorrectionLevel: 'H' });
   const moduleCount = qr.modules.size;
   const margin = 2;
@@ -236,13 +240,16 @@ export function renderCustomQr(canvas: HTMLCanvasElement, text: string, options:
         continue;
       }
 
-      // Finder patterns (the 3 corner position-detection squares) must stay
-      // plain squares regardless of style: scanners lock onto their fixed
-      // 1:1:3:1:1 ratio, and fancy module shapes there break recognition.
+      // Finder patterns (the 3 corner position-detection squares) must stay plain squares,
+      // unjittered, regardless of style: scanners lock onto their fixed 1:1:3:1:1 ratio, and any
+      // perturbation there breaks recognition long before jitter this small would matter anywhere else.
       if (isFinderPattern(row, col, moduleCount)) {
         drawSquare(ctx, cx, cy, cell);
       } else {
-        drawFn(ctx, cx, cy, cell);
+        const jitter = moduleJitter ? moduleJitter(row, col) : null;
+        const jx = jitter ? cx + jitter.dx * cell : cx;
+        const jy = jitter ? cy + jitter.dy * cell : cy;
+        drawFn(ctx, jx, jy, cell);
       }
     }
   }
