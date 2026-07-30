@@ -26,6 +26,7 @@ import AdminPanel from './pages/AdminPanel';
 import AdminSafeTagsQueue from './pages/admin/AdminSafeTagsQueue';
 import AdminSafeTagDetail from './pages/admin/AdminSafeTagDetail';
 import AdminSafeTagRequestsQueue from './pages/admin/AdminSafeTagRequestsQueue';
+import AdminPrintBatches from './pages/admin/AdminPrintBatches';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import ForgotPassword from './components/Auth/ForgotPassword';
@@ -171,6 +172,12 @@ function App() {
               <Route path="/admin/safetag-requests" element={
                 <AdminRoute>
                   <AdminSafeTagRequestsQueue />
+                </AdminRoute>
+              } />
+
+              <Route path="/admin/print-batches" element={
+                <AdminRoute>
+                  <AdminPrintBatches />
                 </AdminRoute>
               } />
 

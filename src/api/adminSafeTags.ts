@@ -1,9 +1,14 @@
 import axios from './axios';
-import { SafeTag, SafeTagUpdateRequest, AdminTagSummary } from '../types/safeTag';
+import { SafeTag, SafeTagUpdateRequest, AdminTagSummary, PrintBatchSummary } from '../types/safeTag';
 
 export const adminSafeTagsAPI = {
   list: async (status?: string, search?: string): Promise<SafeTag[]> => {
     const response = await axios.get('/api/admin/safetags', { params: { status, search } });
+    return response.data;
+  },
+
+  listRecentBatches: async (): Promise<PrintBatchSummary[]> => {
+    const response = await axios.get('/api/admin/safetags/batches');
     return response.data;
   },
 

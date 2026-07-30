@@ -82,6 +82,15 @@ export interface SafeTagUpdateRequest {
   qrCenterText?: string;
 }
 
+export interface PrintBatchSummary {
+  printBatchId: string;
+  safeTagCount: number;
+  securityTemplateIds: string[];
+  printerCalibrationIds: string[];
+  securityPatternVersions: string[];
+  lastUpdatedAt: string | null;
+}
+
 export interface AdminTagSummary {
   id: number;
   tagName: string;

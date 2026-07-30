@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Header from '../../components/Layout/Header';
 import Modal from '../../components/Common/Modal';
 import { adminSafeTagsAPI } from '../../api/adminSafeTags';
@@ -88,12 +88,17 @@ const AdminSafeTagsQueue: React.FC = () => {
       <div className={styles.content}>
         <div className={styles.headerRow}>
           <h1>SafeTags Queue</h1>
-          <button
-            onClick={() => setCreateOpen(true)}
-            style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
-          >
-            + Create SafeTag
-          </button>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <Link to="/admin/print-batches" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: 14 }}>
+              Recent Print Batches →
+            </Link>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--primary)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+            >
+              + Create SafeTag
+            </button>
+          </div>
         </div>
 
         {error && (

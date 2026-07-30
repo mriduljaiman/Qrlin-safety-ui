@@ -15,7 +15,7 @@ export const SECURITY_TEMPLATES: { id: SecurityTemplateId; label: string; descri
 // about being unguessable, it's about being a stable deterministic seed: the same
 // (qrId, printBatchId, securityPatternVersion) triple must always reproduce pixel-identical
 // jitter/guilloché output so a reprint or an audit can be verified against the original.
-function cyrb53(str: string, seed = 0): number {
+export function cyrb53(str: string, seed = 0): number {
   let h1 = 0xdeadbeef ^ seed;
   let h2 = 0x41c6ce57 ^ seed;
   for (let i = 0; i < str.length; i++) {
@@ -30,7 +30,7 @@ function cyrb53(str: string, seed = 0): number {
 
 // mulberry32 - deterministic PRNG from a 32-bit seed. Not cryptographic; we need reproducibility,
 // not unpredictability.
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a |= 0;
@@ -47,7 +47,7 @@ export interface SecurityContext {
   securityPatternVersion: string;
 }
 
-function seedFor(context: SecurityContext, salt: string): number {
+export function seedFor(context: SecurityContext, salt: string): number {
   return cyrb53(`${context.qrId}|${context.printBatchId}|${context.securityPatternVersion}|${salt}`) >>> 0;
 }
 
